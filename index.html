@@ -23,49 +23,7 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="./2017/chemical-networks-gas.html">Generating a systematic chemical network</a></h1>
-<footer class="post-info">
-        <abbr class="published" title="2017-11-01T00:00:00-07:00">
-                Published: Wed 01 November 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="./author/jacob.html">Jacob</a>
-        </address>
-<p>In <a href="./category/blog.html">blog</a>.</p>
-<p>tags: <a href="./tag/database.html">database</a> <a href="./tag/graph-theory.html">graph-theory</a> </p>
-</footer><!-- /.post-info --><p>
-I've been interested in database design for a while now for the purpose of collecting catalytic information in an intelligent and reusable fashion. There are several examples of this already being done in the field of materials science. Some examples of this include:
-</p>
-
-<ul class="org-ul">
-<li>Materials Project
-</li>
-
-<li>Open Quantum Molecular Database (OQMD)
-</li>
-
-<li>AFLOW
-</li>
-</ul>
-
-<p>
-Each of these databases does a good job keeping track of the information needed to reproduce the quantum energy calculations which are performed to obtain their associated energies. 
-</p>
-                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="./2017/org-in-pelican.html" rel="bookmark"
-                           title="Permalink to Integrating org-mode with Pelican">Integrating org-mode with Pelican</a></h1>
-                </header>
-
-                <div class="entry-content">
+                    <h1 class="entry-title"><a href="./2017/org-in-pelican.html">Integrating org-mode with Pelican</a></h1>
 <footer class="post-info">
         <abbr class="published" title="2017-06-13T00:00:00-07:00">
                 Published: Tue 13 June 2017
@@ -76,15 +34,37 @@ Each of these databases does a good job keeping track of the information needed 
         </address>
 <p>In <a href="./category/blog.html">blog</a>.</p>
 <p>tags: <a href="./tag/publishing.html">publishing</a> </p>
-</footer><!-- /.post-info -->                <p>
+</footer><!-- /.post-info --><p>
 I have finally made time to return to my blog and update some information now that I am at SUNCAT. I will be picking up from where I left off as I have made some changes to my setup due to some data loss during the transition.
 </p>
 
 <p>
-Firstly, Pelican has …</p>
-                <a class="readmore" href="./2017/org-in-pelican.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
+Firstly, Pelican has gained a significant number of <a href="https://github.com/getpelican/pelican-plugins">Plugins</a> since I last used it. Including <a href="https://github.com/getpelican/pelican-plugins/tree/master/org_reader">org-reader</a> which allows for seamless integration of org files as substitutes for Markdown &#x2013; more or less. I did find that the static content stored in 'pages' does not have its link information added to the title bar no matter how hard I try when using my old theme, <i>blueidea</i>. However, it does work in the original <i>notmyidea</i> which comes standard with the installation of Pelican. I've decided to use this theme for the time being until I can figure out what the trouble is. Now I can compose all of my posts natively in org documents using the same syntax that I use to write a manuscript, notes, code, etc.. Although much more convenient than composing in Markdown, I still need a method for managing blog posts from one central document and managing what is added to the content folder and when. John has done some work on this in emacs-lisp for his own blog, I believe, so I will look into that next.
+</p>
+
+<p>
+Finally, I have made some revisions to my current implementation on Github. It turns out this is far easier to manage with 2 Github repo, one for the website and another for the Pelican code which produces the website code. I did not have the later previously and lost my original pelican directory, hence the data-loss. Now, this information is publically available on Github at <a href="https://github.com/jboes/jboes.github.io-src">https://github.com/jboes/jboes.github.io-src</a>. This also allows me to rebuild the blog on any machine I might need it by pulling the repo and submodules.
+</p>
+
+<p>
+This requires a slight modification to the code put into the '.git/hooks/post-commit' file as shown below.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">pelican content -s pelicanconf.py &amp;&amp; ghp-import output &amp;&amp; git push git@github.com:jboes/jboes.github.io.git gh-pages:master
+</pre>
+</div>
+
+<p>
+This is exactly as it appears on the <a href="http://docs.getpelican.com/en/3.7.1/tips.html">tips section</a> of the Pelican documentation, but with my personal repo added in.
+</p>
+                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
 
             <li><article class="hentry">
                 <header>

@@ -23,7 +23,546 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="./2017/org-in-pelican.html">Integrating org-mode with Pelican</a></h1>
+                    <h1 class="entry-title"><a href="./2017/suncat-fireworks.html">Installing Fireworks on Sherlock</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2017-12-03T00:00:00-08:00">
+                Published: Sun 03 December 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="./author/jacob.html">Jacob</a>
+        </address>
+<p>In <a href="./category/blog.html">blog</a>.</p>
+<p>tags: <a href="./tag/fireworks.html">fireworks</a> <a href="./tag/quantum-espresso.html">quantum-espresso</a> </p>
+</footer><!-- /.post-info --><div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Getting access to MongoDB</a></li>
+<li><a href="#sec-2">2. Fireworks on Sherlock</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Automatic setup script</a></li>
+<li><a href="#sec-2-2">2.2. Installing Python and modules</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1. 1. Add a up-to-date version of Python to your PATH</a></li>
+<li><a href="#sec-2-2-2">2.2.2. 2. Personal Anaconda installation</a></li>
+<li><a href="#sec-2-2-3">2.2.3. 3. Install a virtual environment</a></li>
+</ul>
+</li>
+<li><a href="#sec-2-3">2.3. Setting up the YAML files</a></li>
+<li><a href="#sec-2-4">2.4. Initializing the database</a></li>
+<li><a href="#sec-2-5">2.5. Other recourses:</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>
+A few people around <a href="http://suncat.stanford.edu/">SUNCAT</a> have been interested in using <a href="https://materialsproject.github.io/fireworks/">Fireworks</a> for high-throughput computations on the range of clusters that we have available here. There is already a significant amount of documentation for general purpose use of Fireworks on their <a href="https://materialsproject.github.io/fireworks/#quickstart-wiggle-your-big-toe">website</a>, so this is meant to be tailored to help the individuals at SUNCAT since getting started on the many clusters can be a bit tedious.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Getting access to MongoDB</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The first thing we'll need is access to a MongoDB database. For members of SUNCAT, you should contact <a href="mailto:mtt013@stanford.edu">Michael Tang</a> who can create an account for you on the SUNCAT cluster. If you want to use the SUNCAT calculation nodes, then using a MongoDB hosted on the SUNCAT head node is required. This is because the SUNCAT calculation nodes are protected by a firewall, preventing them from communicating with other servers. Fortunately, this isn't a problem for the Sherlock cluster. If you are interested, you can also create your own MongoDB from a provider like <a href="https://mlab.com/">mLab</a> or a local instance.
+</p>
+
+<p>
+After contacting Michal, you should have the following information to access the database.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">host='suncatls2.slac.stanford.edu'
+username='your_username'  # Add your username
+name='your_database_name'  # Add your database name
+password='your_password'  # Add your password
+</pre>
+</div>
+
+<p>
+In the next section, I'll demonstrate how to log in to the MongoDB with your own credentials.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Fireworks on Sherlock</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Sherlock is the most well-established cluster of the three available to SUNCAT, so it's generally easiest to start installation here to build up some confidence. In theory, this installation is as simple as running the following script:
+</p>
+</div>
+
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Automatic setup script</h3>
+<div class="outline-text-3" id="text-2-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">sh /share/PI/suncat/fireworks_scripts/makeFireworksDirectory.sh
+</pre>
+</div>
+
+<p>
+This will execute the following script:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">#!/bin/sh
+
+#Make a directory in user $SCRATCH to hold the local fireworks configuration folder
+mkdir $SCRATCH/fireworks
+
+#Copy the configuration files to the new directory
+cp /share/PI/suncat/fireworks_scripts/sherlock/* $SCRATCH/fireworks/
+cp -r /share/PI/suncat/fireworks_scripts/examples $SCRATCH/fireworks/
+cp -r /share/PI/suncat/fireworks_scripts/custom_scripts $SCRATCH/fireworks/
+
+#Change the log file to the correct directory
+echo "logdir: $SCRATCH/fireworks/logs/" &gt;&gt; $SCRATCH/fireworks/my_qadapter.yaml
+
+#Make a directory to hold the virtualenv that will hold the fireworks installation
+mkdir $SCRATCH/fireworks/fireworks_virtualenv
+
+mkdir $SCRATCH/fireworks/logs
+
+#use a clean virtualenv to make sure we have access to pip/virtualenv/etc
+source  /share/PI/suncat/fireworks_scripts/clean_virtualenv/bin/activate
+
+#Install the new virtualenv using johannes' python
+virtualenv -p /home/vossj/suncat/bin/python2.7 $SCRATCH/fireworks/fireworks_virtualenv
+deactivate
+
+#Add some lines to the end of the virtualenv activation script so that johannes' version of ase/etc is used, and that espresso/etc will work
+echo 'export PATH=/home/vossj/suncat/bin:$PATH;
+export LD_LIBRARY_PATH=/home/vossj/suncat/lib:/home/vossj/suncat/lib64:$LD_LIBRARY_PATH:/usr/lib64:/usr/lib;
+export PYTHONPATH=$SCRATCH/fireworks/fireworks_virtualenv/lib/python2.7/site-packages/:$SCRATCH/fireworks/custom_scripts/:$PYTHONPATH;
+export PATH=/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH;
+export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/vossj/suncat/lib:/home/vossj/sunca$
+[ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp;
+export PYTHONPATH=/share/PI/suncat/fireworks_scripts/standard_tasks:$PYTHONPATH' &gt;&gt; $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
+
+#Source the new virtualenv and install the necessary packages
+source $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
+pip install -U pip
+pip install -U setuptools
+pip install fireworks
+pip install numpy
+pip install scipy
+
+#Add an alias to make it easier to user lpad outside of the fireworks folder
+echo "alias lpadc=\"lpad -l $SCRATCH/fireworks/my_launchpad.yaml\"" &gt;&gt; $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
+</pre>
+</div>
+
+<p>
+This will construct a fireworks directory in your $SCRATCH folder with all the files you should need to run Fireworks on Sherlock. This includes some example scripts and the necessary yaml files. I'll discuss these in more detail a little later on.
+</p>
+
+<p>
+The script will also install a python virtual environment for you inside that directory which is simply a self-contained python installation which is configured specifically running Fireworks and Quantum Espresso. This is a useful methodology because it will keep your Fireworks installation self-contained. This is particularly useful if the Quantum Espresso libraries conflict with your preferred setup.
+</p>
+
+<p>
+However, this can also add some additional difficulty when doing development work or trying to troubleshoot. For example, you might prefer to use your own ase-espresso installation so you can make personal changes to it. We also don't gain much insight about what's going on under the hoody, so I'll go through a more detailed explanation next.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Installing Python and modules</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+All of the following steps are more-or-less interchangeable with the steps outlined with the script above. Before we do anything with Fireworks, we need to make sure we have a sufficiently up-to-date Python version and Quantum Espresso installation. We'll start by checking the version of Python available on the PATH.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">import sys
+print(sys.version)
+</pre>
+</div>
+
+<p>
+I prefer to have my own installation of <a href="https://www.anaconda.com/download/#linux">Anaconda</a> on each of my machines because it makes package management easier and comes pre-packaged with many useful modules for scientific programming. According to the Fireworks <a href="https://materialsproject.github.io/fireworks/installation.html">website</a>, Python 2.7.3+ or 3.3+ should be sufficient. The real test is whether you can install the correct modules or not. This should work well enough on a personal machine, but may not on a server. The \(--user\) flag is used to install the modules into the home directory so that super user privileges are not needed.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">pip install -U --user pip
+pip install -U --user setuptools
+pip install --user fireworks
+pip install --user numpy
+pip install --user scipy
+pip install --user matplotlib  # Used for the GUI
+</pre>
+</div>
+
+<p>
+Once the simple modules are installed, you will likely want to install <a href="https://github.com/vossjo/ase-espresso">ase-espresso</a> if you intend to use Quantum Espresso. On the cluster I assume this is contained within the one of the PATH calls, but I'm not sure where. Instead, I choose to maintain my own version of ase-espresso, which is simple enough install from git. First, move to a directory where you want to install ase-espresso and run the following.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone git@github.com:vossjo/ase-espresso.git espresso
+cd espresso
+cp espsite.py.example.SLURMsherlock espsite.py
+</pre>
+</div>
+
+<p>
+The final step in the code above will copy the example Sherlock template for running ase-espresso. Once this is finished you simply need to add the installation location to your PATH in your .bashrc file.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"># Load ase-espresso
+export PYTHONPATH=~/code:$PYTHONPATH
+
+# Create a PSPPATH for running espresso jobs
+export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp
+</pre>
+</div>
+
+<p>
+The last line of code here points to the Pseudo potential paths to be used when preforming your calculations. You may want to change this to suit your own needs. that should cover all the details of setting up Qunatum Espresso and Fireworks from scratch.
+</p>
+
+<p>
+If you have trouble at this step, you have a few options:
+</p>
+</div>
+
+<div id="outline-container-sec-2-2-1" class="outline-4">
+<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> 1. Add a up-to-date version of Python to your PATH</h4>
+<div class="outline-text-4" id="text-2-2-1">
+<p>
+Fixing this can be as simple as adding a newer version of Python to your PATH. If you'd like to use mine, it can be found in the following location.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh"># added by Anaconda2 installer
+export PATH=/scratch/users/jrboes/anaconda2/bin:$PATH
+</pre>
+</div>
+
+<p>
+Johannes' version of Python is installed here:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">/home/vossj/suncat/bin/python2.7
+</pre>
+</div>
+
+<p>
+This is a nice quick fix and can be suitable for many users, assuming the PATH does not change.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2-2" class="outline-4">
+<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> 2. Personal Anaconda installation</h4>
+<div class="outline-text-4" id="text-2-2-2">
+<p>
+My first choice was to install Anaconda which is as simple as running the following script and then following the direction in your terminal.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">cd $SCRATCH
+curl -O https://repo.continuum.io/archive/Anaconda2-5.0.1-Linux-x86_64.sh
+bash Anaconda2-5.0.1-Linux-x86_64.sh
+</pre>
+</div>
+
+<p>
+This is my preferred choice because it provides direct control over the modules which I am using. An absolute must for a method developer and likely to be useful for others as well. This will take some setting up on the users part, but most modules can now be installed easily with pip so this will make your life easier in the long run.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2-3" class="outline-4">
+<h4 id="sec-2-2-3"><span class="section-number-4">2.2.3</span> 3. Install a virtual environment</h4>
+<div class="outline-text-4" id="text-2-2-3">
+<p>
+Similar to the script above, you can create your own virtual environment for Python. At the moment, I do not do this myself, so I am not familiar with the details of the process, but he rough idea is illustrated in the script above. As I mentioned above, if you want your Fireworks environment to be separate from your standard environment, this is the best way to go.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-3" class="outline-3">
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Setting up the YAML files</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+Nest we need to create a Fireworks directory in SCRATCH and change into it.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">mkdir $SCRATCH/fireworks
+cd $SCRATCH/fireworks
+mkdir logs
+</pre>
+</div>
+
+<p>
+By default, Fireworks will create the jobs which it runs on the Sherlock cluster in files named Block-* inside of the directory where the ``launchpad'' is located. We can create this yaml file using the \(lpad init\) command which comes with the newly installed Fireworks module. This will walk you through the addition of your credentials automatically with the following prompt.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">jrboes@sherlock1 /scratch/users/jrboes/fireworks $ lpad init
+Please supply the following configuration values
+(press Enter if you want to accept the defaults)
+
+Enter host (default: localhost) : suncatls2.slac.stanford.edu
+Enter port (default: 27017) :
+Enter name (default: fireworks) : your_database_name
+Enter username (default: None) : your_username
+Enter password (default: None) : your_password
+Enter ssl_ca_file (default: None) : 
+
+Configuration written to my_launchpad.yaml!
+</pre>
+</div>
+
+<p>
+This will generate a file named ``my<sub>launchpad</sub>.yaml'' which contains the following.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">host: suncatls2.slac.stanford.edu
+logdir: null
+name: your_database_name
+password: your_password
+port: 27017
+ssl: false
+ssl_ca_certs: null
+ssl_certfile: null
+ssl_keyfile: null
+ssl_pem_passphrase: null
+strm_lvl: INFO
+user_indices: []
+username: your_username
+wf_user_indices: []
+</pre>
+</div>
+
+<p>
+You can also simply create this file by copying your credentials into a similarly named file in this directory. Don't forget to change the placeholder credentials to your own.
+</p>
+
+<p>
+Next we need a ``my<sub>fireworker</sub>.yaml'' file for keeping track of the server where Fireworks are being run. Create a file of this name and add the following.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">name: sherlock
+category: ''
+query: '{}'
+</pre>
+</div>
+
+<p>
+The ``name'' is that will appear in the database to indicate which server a Firework was run on. 
+</p>
+
+<p>
+The last required yaml file is a ``my<sub>qadapter</sub>.yaml'' file. This will contain the details of how the jobs which are committed to the queue are run.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">_fw_name: CommonAdapter
+_fw_q_type: SLURM 
+rocket_launch: rlaunch -w $SCRATCH/fireworks/my_fireworker.yaml -l $SCRATCH/fireworks/my_launchpad.yaml singleshot
+nodes: 2
+ntasks_per_node: 16
+walltime: '48:00:00'
+queue: owners,iric,normal
+account: null
+job_name: fw
+pre_rocket: null
+post_rocket: null
+logdir: /scratch/users/jrboes/fireworks/logs/
+</pre>
+</div>
+
+<p>
+These are my default settings, but you may want to set them differently depending on your needs. Keep in mind that you will not be able to specify which jobs are run on which server using the default Fireworks settings. That means the queue adapter needs to be generic to all of the jobs you run.
+</p>
+
+<p>
+Another important difference in this step for my purposes is that I do not add anything to my pre<sub>rocket</sub>. The pre<sub>rocket</sub> is bash code which is executed before the main body of code. For the automated script in the first section, the PATH and LB<sub>LIBRARY</sub><sub>PATH</sub> information needed to run Quantum Espresso on Sherlock is added here. This is to keep the environment that Fireworks runs in completely segregated from whichever setup is already in place for you on Sherlock. This can make troubleshooting very convoluted since it requires an understanding of where PATH information is being called from under which contexts. This can be made worse by using existing installations of Python which are also calling PATH information which can make things run differently in the QUEUE than they do on the headnode.
+</p>
+
+<p>
+One example of this is Johannes' installation of Python here:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">cat /home/vossj/suncat/bin/python_s2.0
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">#!/bin/bash
+ls -ld /home/vossj &amp;&gt;/dev/null
+if [ -d /home/vossj ]; then
+  export PATH=/home/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
+  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/vossj/suncat/lib:/home/vossj/suncat/lib64:$LD_LIBRARY_PATH
+  [ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp
+  [ "x$VASP_SCRIPT" = "x" ] &amp;&amp; export VASP_SCRIPT=/home/vossj/suncat/vbin/vasp.py
+  [ "x$VASP_PP_PATH" = "x" ] &amp;&amp; export VASP_PP_PATH=/home/vossj/suncat/vpsp/pseudo52
+  exec /home/vossj/suncat/bin/python2.7 "$@"
+else
+  export PATH=/home/users/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/users/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
+  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/users/vossj/suncat/lib:/home/users/vossj/suncat/lib64:/home/users/vossj/suncat/lib/s2.0:$LD_LIBRARY_PATH
+  if [ "x$PYTHONPATH" = "x" ]; then
+    export PYTHONPATH=/home/users/vossj/suncat/lib/python2.7/site-packages
+  else
+    export PYTHONPATH=PYTHONPATH:/home/users/vossj/suncat/lib/python2.7/site-packages
+  fi
+  export PATH=/home/users/vossj/suncat/s2/qe5/bin:/home/users/vossj/suncat/s2/ompi2.1.0/bin:/share/software/user/restricted/icc/2017.u2/bin:/share/software/user/restricted/ifort/2017.u2/bin:/share/software/user/restricted/imkl/2017.u2/bin:/home/users/vossj/bin:/home/users/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/share/software/user/srcc/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/dell/srvadmin/bin:$PATH
+  export LD_LIBRARY_PATH=/home/users/vossj/suncat/s2/ompi2.1.0/lib:/share/software/user/restricted/icc/2017.u2/lib/intel64:/share/software/user/restricted/ifort/2017.u2/lib/intel64:/share/software/user/restricted/imkl/2017.u2/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/users/vossj/suncat/lib:/home/users/vossj/suncat/lib64:/home/users/vossj/suncat/lib/s2.0:$LD_LIBRARY_PATH
+  [ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/users/vossj/suncat/esdld/psp
+  [ "x$VASP_SCRIPT" = "x" ] &amp;&amp; export VASP_SCRIPT=/home/users/vossj/suncat/vbin/vasp.py
+  [ "x$VASP_PP_PATH" = "x" ] &amp;&amp; export VASP_PP_PATH=/home/users/vossj/suncat/vpsp/pseudo52
+  exec /home/users/vossj/suncat/bin/python2.7 "$@"
+</pre>
+</div>
+
+<p>
+The first if statement above is checking if we are on Sherlock 1 or 2. Notice that the PATH information provided here is the same PATH information provided in the automated script. These are the libraries which are required for running Quantum Espresso. To help my own understanding, I chose to add this PATH information to my .bashrc file. This way, my library environment is consistent in ALL contexts which is very useful for troubleshooting purposes.
+</p>
+
+<p>
+Here is a copy of the Sherlock 1 specific section of my .bashrc. Loading them here prevents the need to load them in the pre<sub>rocket</sub> or using the ``/home/vossj/suncat/bin/python<sub>s2</sub>.0'' script when calling my own version of Python.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">if [[ "$SHERLOCK" == "1" ]]; then
+  export CLUSTER='sherlock'
+
+  # For QE from: /home/vossj/suncat/bin/python_s2.0
+  export PATH=/home/vossj/suncat/bin:$PATH
+  export PATH=/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:$PATH
+  export PATH=/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
+
+  export LD_LIBRARY_PATH=/home/vossj/suncat/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/home/vossj/suncat/lib64:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:$LD_LIBRARY_PATH
+
+  # Personalize my terminal prompt
+  export PS1="\[\e[1;34m\]\u@sherlock1\[\e[1;34m\] \w $\[\e[0m\] "
+
+  # For VASP
+  export VASP_SCRIPT=/home/vossj/suncat/vbin1/vasp.py
+  export VASP_PP_PATH=/home/vossj/suncat/vpsp/pseudo52
+
+  # Load fireworks
+  alias lpad='lpad -l $SCRATCH/fireworks/my_launchpad.yaml'
+</pre>
+</div>
+
+<p>
+NOTE: While this setup is convenient for keeping things consistent in all working environments, that is also its weakness. It might not be suitable to load the Quantum Espresso libraries for other codes. If you suspect you'll have conflicting libraries needed for other software, this method is NOT for you.
+</p>
+
+<p>
+By the end of this section you should have a $SCRATCH/fireworks directory with the following files:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">my_fireworker.yaml
+my_launchpad.yaml
+my_qadapter.yaml
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2-4" class="outline-3">
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Initializing the database</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+Up until this point, we have not constructed any database architecture which will tell our generic MongoDB how to run Fireworks. To make this process simpler, it is convenient to have an alias in the .bashrc file which tells the \(lpad\) command where your yaml files are.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">alias lpad='lpad -l $SCRATCH/fireworks/my_launchpad.yaml'
+</pre>
+</div>
+
+<p>
+Now we can run a simple command which will automatically design our database with Fireworks architecture so we can start running jobs.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">lpad reset
+</pre>
+</div>
+
+<p>
+Once completed, you will have a database which is ready to go. You can also add a script to your fireworks file which will start the automatic submission of your jobs once they are added to the database.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">#!/bin/bash
+cd $SCRATCH/fireworks
+nohup qlaunch rapidfire -m 40 --nlaunches infinite &amp;
+</pre>
+</div>
+
+<p>
+Running this script will submit a maximum of 40 jobs to the queue for as long as the command is running. Using nohup to run the command will keep it running as a daemon in the background even after your logged out. This is not always reliable for some reason, so it can be helpful to increase the maximum queue count so that you don't need to constantly monitor this. Also, it should be safe to run this before having submitted jobs to be run to the database since Fireworks does not add jobs if there are none to be run.
+</p>
+
+<p>
+This is a fairly long post already, so I will save discussion of some of the basics of Fireworks submission (for Quantum Espresso) for next time. Getting used to the way Fireworks operates is much more challenging then actually installing it.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2-5" class="outline-3">
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Other recourses:</h3>
+<div class="outline-text-3" id="text-2-5">
+<p>
+An introductory presentation to from former post-doc Zack Ulissi: <a href="https://docs.google.com/presentation/d/1w8XW8Q-JhWRM7-MjOB7R53UoAe42t-CKWNuZLmQSvgA/edit#slide=id.p">Google slides</a>.
+</p>
+</div>
+</div>
+</div>
+                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="./2017/org-in-pelican.html" rel="bookmark"
+                           title="Permalink to Integrating org-mode with Pelican">Integrating org-mode with Pelican</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2017-06-13T00:00:00-07:00">
                 Published: Tue 13 June 2017
@@ -34,37 +573,15 @@
         </address>
 <p>In <a href="./category/blog.html">blog</a>.</p>
 <p>tags: <a href="./tag/publishing.html">publishing</a> </p>
-</footer><!-- /.post-info --><p>
+</footer><!-- /.post-info -->                <p>
 I have finally made time to return to my blog and update some information now that I am at SUNCAT. I will be picking up from where I left off as I have made some changes to my setup due to some data loss during the transition.
 </p>
 
 <p>
-Firstly, Pelican has gained a significant number of <a href="https://github.com/getpelican/pelican-plugins">Plugins</a> since I last used it. Including <a href="https://github.com/getpelican/pelican-plugins/tree/master/org_reader">org-reader</a> which allows for seamless integration of org files as substitutes for Markdown &#x2013; more or less. I did find that the static content stored in 'pages' does not have its link information added to the title bar no matter how hard I try when using my old theme, <i>blueidea</i>. However, it does work in the original <i>notmyidea</i> which comes standard with the installation of Pelican. I've decided to use this theme for the time being until I can figure out what the trouble is. Now I can compose all of my posts natively in org documents using the same syntax that I use to write a manuscript, notes, code, etc.. Although much more convenient than composing in Markdown, I still need a method for managing blog posts from one central document and managing what is added to the content folder and when. John has done some work on this in emacs-lisp for his own blog, I believe, so I will look into that next.
-</p>
-
-<p>
-Finally, I have made some revisions to my current implementation on Github. It turns out this is far easier to manage with 2 Github repo, one for the website and another for the Pelican code which produces the website code. I did not have the later previously and lost my original pelican directory, hence the data-loss. Now, this information is publically available on Github at <a href="https://github.com/jboes/jboes.github.io-src">https://github.com/jboes/jboes.github.io-src</a>. This also allows me to rebuild the blog on any machine I might need it by pulling the repo and submodules.
-</p>
-
-<p>
-This requires a slight modification to the code put into the '.git/hooks/post-commit' file as shown below.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">pelican content -s pelicanconf.py &amp;&amp; ghp-import output &amp;&amp; git push git@github.com:jboes/jboes.github.io.git gh-pages:master
-</pre>
-</div>
-
-<p>
-This is exactly as it appears on the <a href="http://docs.getpelican.com/en/3.7.1/tips.html">tips section</a> of the Pelican documentation, but with my personal repo added in.
-</p>
-                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+Firstly, Pelican has …</p>
+                <a class="readmore" href="./2017/org-in-pelican.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>

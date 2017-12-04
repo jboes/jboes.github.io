@@ -23,7 +23,7 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="../2017/suncat-fireworks.html">Installing Fireworks on Sherlock</a></h1>
+                    <h1 class="entry-title"><a href="../2017/running-fireworks-scripts.html">Running Quantum Espresso with Fireworks</a></h1>
 <footer class="post-info">
         <abbr class="published" title="2017-12-03T00:00:00-08:00">
                 Published: Sun 03 December 2017
@@ -38,515 +38,969 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#sec-1">1. Getting access to MongoDB</a></li>
-<li><a href="#sec-2">2. Fireworks on Sherlock</a>
+<li><a href="#sec-1">1. Running Quantum Espresso</a></li>
+<li><a href="#sec-2">2. Creating module Fireworks functions</a>
 <ul>
-<li><a href="#sec-2-1">2.1. Automatic setup script</a></li>
-<li><a href="#sec-2-2">2.2. Installing Python and modules</a>
-<ul>
-<li><a href="#sec-2-2-1">2.2.1. 1. Add a up-to-date version of Python to your PATH</a></li>
-<li><a href="#sec-2-2-2">2.2.2. 2. Personal Anaconda installation</a></li>
-<li><a href="#sec-2-2-3">2.2.3. 3. Install a virtual environment</a></li>
+<li><a href="#sec-2-1">2.1. Saving a Quantum Espresso trajectory</a></li>
+<li><a href="#sec-2-2">2.2. Writing a database-friendly input file</a></li>
+<li><a href="#sec-2-3">2.3. Recovering an atoms object from encoding</a></li>
+<li><a href="#sec-2-4">2.4. Performing a relaxation</a></li>
+<li><a href="#sec-2-5">2.5. Recovering an existing calculator</a></li>
 </ul>
 </li>
-<li><a href="#sec-2-3">2.3. Setting up the YAML files</a></li>
-<li><a href="#sec-2-4">2.4. Initializing the database</a></li>
-<li><a href="#sec-2-5">2.5. Other recourses:</a></li>
-</ul>
-</li>
+<li><a href="#sec-3">3. Running through Fireworks</a></li>
+<li><a href="#sec-4">4. Collecting information from Fireworks</a></li>
 </ul>
 </div>
 </div>
 <p>
-A few people around <a href="http://suncat.stanford.edu/">SUNCAT</a> have been interested in using <a href="https://materialsproject.github.io/fireworks/">Fireworks</a> for high-throughput computations on the range of clusters that we have available here. There is already a significant amount of documentation for general purpose use of Fireworks on their <a href="https://materialsproject.github.io/fireworks/#quickstart-wiggle-your-big-toe">website</a>, so this is meant to be tailored to help the individuals at SUNCAT since getting started on the many clusters can be a bit tedious.
+The most difficult part of adapting to using Fireworks is probably not installing it, but actually adapting to database centric worflow style. What does that mean exactly? Well, the evolution of performing quantum chemistry calculations usually begins with performing a large number of calculations in a single file and outputting the results to differently named files within that directory. With a significantly large number of calculations, this quickly becomes a chaotic mess.
+</p>
+
+<p>
+The next logical choice for retaining some order is usually to distribute these calculations between directories labeled in a way that the user can find them later. Individuals who are particularly interested in reproducibility are likely to divide calculations into individual runs as well so that each file represents its own run instance. This help to avoid overwriting information which can make following the progression of a calculation difficult or impossible. This tends to be much easier to manage, but there are still some hassles, such as needing to know the order of file structures to get specific information.
+</p>
+
+<p>
+Using a database to store information about where calculations are located has all the advantages of both systems. Calculations are kept well organized in their own directory, while the database stores keywords which allow that information to be accessed easily. These keywords can be as simple as storing the names of the directories you would have used previously. The trick is getting used to this way of collecting information. I'll try and go over some basic methodologies which could be generally useful for getting accustomed to this style.
 </p>
 
 <div id="outline-container-sec-1" class="outline-2">
-<h2 id="sec-1"><span class="section-number-2">1</span> Getting access to MongoDB</h2>
+<h2 id="sec-1"><span class="section-number-2">1</span> Running Quantum Espresso</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-The first thing we'll need is access to a MongoDB database. For members of SUNCAT, you should contact <a href="mailto:mtt013@stanford.edu">Michael Tang</a> who can create an account for you on the SUNCAT cluster. If you want to use the SUNCAT calculation nodes, then using a MongoDB hosted on the SUNCAT head node is required. This is because the SUNCAT calculation nodes are protected by a firewall, preventing them from communicating with other servers. Fortunately, this isn't a problem for the Sherlock cluster. If you are interested, you can also create your own MongoDB from a provider like <a href="https://mlab.com/">mLab</a> or a local instance.
+Before we try running Fireworks at all, we should make sure we can run Quantum Espresso first. In a previous post, I went over installing Fireworks on Sherlock for SUNCAT users. This post also goes over getting the libraries needed for Quantum Espresso working in any environment. If you've followed this approach, you should be able to run the following example script with little troubles.
 </p>
 
 <p>
-After contacting Michal, you should have the following information to access the database.
+First, we construct a script file to run. Copy the following into a file named 'script.py'.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">host='suncatls2.slac.stanford.edu'
-username='your_username'  # Add your username
-name='your_database_name'  # Add your database name
-password='your_password'  # Add your password
+<pre class="src src-python">#!/usr/bin/env python
+from ase import Atoms
+from ase.io import write
+from espresso import espresso
+
+# Define the ase-espresso keys we will use.
+keys = {
+    'mode': 'relax',
+    'opt_algorithm': 'bfgs',
+    'xc': 'RPBE',
+    'outdir': '.',
+    'output': {'removesave': True},
+    'pw': 200,
+    'dw': 2000,
+    'dipole': {'status': True},
+    'kpts': (1, 1, 1),
+    'calcstress': True,
+    'convergence': {
+	'energy': 1e-5,
+	'mixing': 0.35}}
+
+# Create the atoms object
+atoms = Atoms(
+    'H2',
+    [[0.0, 0.0, 0.0],
+     [0.0, 0.0, 0.8]])
+atoms.center(vacuum=4)
+atoms.info = keys
+write('input.traj', atoms)
+
+# Calculate the relaxation
+calc = espresso(**keys)
+atoms.set_calculator(calc)
+atoms.get_potential_energy()
+
+# Save the compressed calculator file so that we can use it for later.
+calc.save_flev_output()
 </pre>
 </div>
 
 <p>
-In the next section, I'll demonstrate how to log in to the MongoDB with your own credentials.
+Now we can run the script and see if everything works properly. By submitting to the development queue, we should be able to run this test quickly. 
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">sbatch -p dev script.py
+</pre>
+</div>
 </div>
 </div>
 
 <div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> Fireworks on Sherlock</h2>
+<h2 id="sec-2"><span class="section-number-2">2</span> Creating module Fireworks functions</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-Sherlock is the most well-established cluster of the three available to SUNCAT, so it's generally easiest to start installation here to build up some confidence. In theory, this installation is as simple as running the following script:
+Fireworks is designed to run scripts in modular fashion, so that individual tasks which are common to many unit cells can be called upon easily and assembled different types of calculations. For my purposes, I find it very useful to collect the trajectory of a relaxation after it is completed. For this, <a href="https://github.com/vossjo/ase-espresso">ase-espresso</a> has a built in function called <a href="https://github.com/vossjo/ase-espresso/blob/master/pwlog2trajectory">pwlog2trajectory</a>.
+</p>
+
+<p>
+In the example, I'll be calling all of the functions I use from the following <a href="../scripts/qefw.py">python scripts</a>. It's a long one because it draws from many modules I incorporate in my workflow. I hope to be more diligent about posting in the future to help break each of these concepts up into individual posts.
 </p>
 </div>
 
 <div id="outline-container-sec-2-1" class="outline-3">
-<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Automatic setup script</h3>
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Saving a Quantum Espresso trajectory</h3>
 <div class="outline-text-3" id="text-2-1">
-<div class="org-src-container">
-
-<pre class="src src-sh">sh /share/PI/suncat/fireworks_scripts/makeFireworksDirectory.sh
-</pre>
-</div>
-
 <p>
-This will execute the following script:
+Line 129 of this code doesn't seem to operate correctly for my purposes when I was originally attempting to store the trajectory calculation information, so I modified it into my own version which works slightly differently.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">#!/bin/sh
+<pre class="src src-python">import os
+from ase.calculators.singlepoint import SinglePointCalculator as SPC
+import numpy as np
+from ase import Atoms
+from ase.io import read, write
+from ase.units import Ry, Bohr
+# 1.889726 is the atomic unit of length per Angstrom (aul/A)
+aul = 1.889726
 
-#Make a directory in user $SCRATCH to hold the local fireworks configuration folder
-mkdir $SCRATCH/fireworks
 
-#Copy the configuration files to the new directory
-cp /share/PI/suncat/fireworks_scripts/sherlock/* $SCRATCH/fireworks/
-cp -r /share/PI/suncat/fireworks_scripts/examples $SCRATCH/fireworks/
-cp -r /share/PI/suncat/fireworks_scripts/custom_scripts $SCRATCH/fireworks/
+def attach_results(f, atoms, write_file=True):
+    """ Return the TS corrected energy for a scf instance
+    in a log file and attach them to the given atoms obejct.
 
-#Change the log file to the correct directory
-echo "logdir: $SCRATCH/fireworks/logs/" &gt;&gt; $SCRATCH/fireworks/my_qadapter.yaml
+    Will also attach the forces and stress if applicable.
+    """
+    energy, forces, stress = None, None, None
 
-#Make a directory to hold the virtualenv that will hold the fireworks installation
-mkdir $SCRATCH/fireworks/fireworks_virtualenv
+    line = f.readline()
+    while '!    total energy' not in line:
+	line = f.readline()
 
-mkdir $SCRATCH/fireworks/logs
+    energy = float(line.split()[-2]) * Ry
 
-#use a clean virtualenv to make sure we have access to pip/virtualenv/etc
-source  /share/PI/suncat/fireworks_scripts/clean_virtualenv/bin/activate
+    # Correct for non-zero temperature smearing
+    for i in range(20):
 
-#Install the new virtualenv using johannes' python
-virtualenv -p /home/vossj/suncat/bin/python2.7 $SCRATCH/fireworks/fireworks_virtualenv
-deactivate
+	line = f.readline()
+	if '     smearing contrib.' in line:
+	    energy -= 0.5 * float(line.split()[-2]) * Ry
 
-#Add some lines to the end of the virtualenv activation script so that johannes' version of ase/etc is used, and that espresso/etc will work
-echo 'export PATH=/home/vossj/suncat/bin:$PATH;
-export LD_LIBRARY_PATH=/home/vossj/suncat/lib:/home/vossj/suncat/lib64:$LD_LIBRARY_PATH:/usr/lib64:/usr/lib;
-export PYTHONPATH=$SCRATCH/fireworks/fireworks_virtualenv/lib/python2.7/site-packages/:$SCRATCH/fireworks/custom_scripts/:$PYTHONPATH;
-export PATH=/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH;
-export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/vossj/suncat/lib:/home/vossj/sunca$
-[ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp;
-export PYTHONPATH=/share/PI/suncat/fireworks_scripts/standard_tasks:$PYTHONPATH' &gt;&gt; $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
+	# Collect the forces on the atoms
+	if 'Forces acting on atoms (Ry/au):' in line:
+	    for _ in range(4):
+		line = f.readline()
+		if 'atom' in line:
+		    break
 
-#Source the new virtualenv and install the necessary packages
-source $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
-pip install -U pip
-pip install -U setuptools
-pip install fireworks
-pip install numpy
-pip install scipy
+	    forces = []
+	    for _ in range(len(atoms)):
+		forces += [line.split()[-3:]]
+		line = f.readline()
 
-#Add an alias to make it easier to user lpad outside of the fireworks folder
-echo "alias lpadc=\"lpad -l $SCRATCH/fireworks/my_launchpad.yaml\"" &gt;&gt; $SCRATCH/fireworks/fireworks_virtualenv/bin/activate
+	    forces = np.array(forces, dtype=float) / Ry * aul
+
+	    # If forces were located, attempt to find stress
+	    for i in range(10):
+		line = f.readline()
+
+		if 'total   stress' in line:
+
+		    stress = []
+		    for _ in range(3):
+			line = f.readline()
+			stress += [line.split()[-3:]]
+
+		    stress = np.array(stress, dtype=float) / Ry * Bohr ** 3
+		    break
+
+    # attach the calculator
+    calc = SPC(atoms=atoms,
+	       energy=energy,
+	       forces=forces,
+	       stress=stress)
+    atoms.set_calculator(calc)
+
+    return atoms
+
+
+def log_to_atoms(log_file='log', ent=-1, out_file=None):
+    """ Parse a QE log file for atoms trajectory and return a list
+    of atoms objects representative of the relaxation path.
+
+    NOTE: trajectory information is only returned for calculations
+    run with BFGS internal to QE.
+    """
+
+    images = []
+    with open(log_file) as f:
+	line = f.readline()
+
+	# Flag to read trajectory 'ent' only
+	with os.popen(
+		'grep -n Giannozzi ' +
+		log_file +
+		' 2&gt;/dev/null', 'r') as p:
+	    n = int(p.readlines()[ent].split()[0].strip(':'))
+
+	for i in range(n):
+	    line = f.readline()
+
+	# Read lines one at a time
+	while line:
+	    line = f.readline()
+
+	    # Signifies a new trajectory
+	    # Clear any existing values from previous runs
+	    if '(npk)' in line:
+
+		# Look for an input trajectory in the same file and use it
+		# Convenient for conserving constraints, tags, and atoms info
+		in_file = os.path.join(
+		    '/'.join(log_file.split('/')[:-1]),
+		    'input.traj')
+
+		if os.path.exists(in_file):
+
+		    # If it does exist, read it in as the initial configuration
+		    atoms = read(in_file)
+		    atoms.wrap()
+		    natoms = len(atoms)
+		    pos = atoms.get_positions()
+
+		    # Skip past the geometry information
+		    while 'site n.' not in line:
+			line = f.readline()
+
+		# Otherwise, collect from the data
+		else:
+		    atoms = None
+
+	    # Example properties
+	    ######################
+	    # bravais-lattice index     =            0
+	    # lattice parameter (alat)  =       1.8897  a.u.
+	    # unit-cell volume          =    3209.1777 (a.u.)^3
+	    # number of atoms/cell      =            5
+	    # number of atomic types    =            2
+	    # number of electrons       =        45.00
+	    # number of Kohn-Sham states=           55
+	    # kinetic-energy cutoff     =      36.7493  Ry
+	    # charge density cutoff     =     367.4932  Ry
+	    # convergence threshold     =      7.3E-08
+	    # mixing beta               =       0.1000
+	    # number of iterations used =            8  plain     mixing
+	    # Exchange-correlation      = BEEF ( 1  4 27 13 2)
+	    # nstep                     =           50
+
+	    # Collect potentially relevent properties
+	    # The elif can be omitted if order is assured
+	    elif 'number of atoms/cell      =' in line:
+		natoms = int(line.split()[-1])
+
+	    # Collect cell dimensions
+	    elif 'celldm(1)' in line:
+		alat = float(line.split()[1]) / aul
+
+	    elif 'crystal' in line:
+		cell = []
+		for _ in range(3):
+		    line = f.readline()
+		    cell += [[float(x) for x in line.split()[3:6]]]
+		cell = np.array(cell) * alat
+
+	    # Collect positions, symbols, and number of atoms
+	    elif 'site n.' in line:
+		pos, syms = [], []
+
+		for _ in range(natoms):
+		    line = f.readline()
+		    pos += [line.split()[-4:-1]]
+		    syms += [line.split()[1].strip('0123456789')]
+
+		pos = np.array(pos, dtype=float) * alat
+
+		# Setup the atoms object
+		atoms = Atoms(syms, pos, cell=cell, pbc=(1, 1, 1))
+
+	    # This should be the last piece of information
+	    elif 'number of k points=' in line:
+
+		atoms = attach_results(f, atoms)
+
+		# Add atom to images
+		images = [atoms]
+
+		# Only atomic positions and energies need to be collected now
+		# until the calculation ends
+		while 'JOB DONE.' not in line and line:
+		    line = f.readline()
+
+		    # A duplicate of the coordinates printed previously
+		    if 'Begin final coordinates' in line:
+			break
+
+		    if 'ATOMIC_POSITIONS' in line:
+			atoms = atoms.copy()
+
+			coord = line.split('(')[-1]
+			for i in range(natoms):
+			    line = f.readline()
+			    pos[i][:] = line.split()[1:4]
+
+			    # It's possible to recover constraints here,
+			    # but not yet implemented If there are 7
+			    # characters in the line, we have constraints
+			    # if len(line.split()) == 7:
+			    #     cons += [line.split()[-3:]]
+			    # else:
+			    #     cons += [[1] * 3]
+
+			# cons = np.array(cons, dtype=float)
+
+			if coord == 'alat)':
+			    atoms.set_positions(pos * alat)
+			elif coord == 'bohr)':
+			    atoms.set_positions(pos * Bohr)
+			elif coord == 'angstrom)':
+			    atoms.set_positions(pos)
+			else:
+			    atoms.set_scaled_positions(pos)
+
+			# atoms.wrap()
+			atoms = attach_results(f, atoms)
+			images += [atoms]
+
+		if out_file:
+		    write(out_file, images)
+
+		return images
 </pre>
 </div>
 
 <p>
-This will construct a fireworks directory in your $SCRATCH folder with all the files you should need to run Fireworks on Sherlock. This includes some example scripts and the necessary yaml files. I'll discuss these in more detail a little later on.
+In this function, the atoms object information for an input.traj file is used, so I'm always relying on that being in the calculation directory before having run this script. Another important caveat is that this script is designed for incorporating the entire relaxation trajectory. This will not necessarily work correctly if you re-run your Quantum Espresso calculations inside of the same directory as this will append images on to the end of the log file. Generally speaking, this is poor practice when performing calculations for reproducibility reasons.
 </p>
 
 <p>
-The script will also install a python virtual environment for you inside that directory which is simply a self-contained python installation which is configured specifically running Fireworks and Quantum Espresso. This is a useful methodology because it will keep your Fireworks installation self-contained. This is particularly useful if the Quantum Espresso libraries conflict with your preferred setup.
-</p>
-
-<p>
-However, this can also add some additional difficulty when doing development work or trying to troubleshoot. For example, you might prefer to use your own ase-espresso installation so you can make personal changes to it. We also don't gain much insight about what's going on under the hoody, so I'll go through a more detailed explanation next.
+Now that we have a functional ability to use Quantum Espresso, we can break our calculation into nicely modular functions which we can use in different situations as needed. These will need to incorporate certain aspects in order to be easily searchable in the database later down the road.
 </p>
 </div>
 </div>
 
 <div id="outline-container-sec-2-2" class="outline-3">
-<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Installing Python and modules</h3>
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Writing a database-friendly input file</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
-All of the following steps are more-or-less interchangeable with the steps outlined with the script above. Before we do anything with Fireworks, we need to make sure we have a sufficiently up-to-date Python version and Quantum Espresso installation. We'll start by checking the version of Python available on the PATH.
+The first function I use quite frequently is one which converts an atoms object into a string format. This allows me to use an atoms object as the input to my calculation from any computer. That way, I can stage them from my personal computer ans simply have Fireworks unpack and run them once they are on the cluster.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-python">import sys
-print(sys.version)
+<pre class="src src-python">import numpy as np
+import json
+
+
+def atoms_to_encode(images):
+    """ Converts an list of atoms objects to an encoding
+    from a .traj file.
+    """
+
+    if not isinstance(images, list):
+	images = [images]
+
+    # Convert all constraints into dictionary format
+    constraints = [_.todict() for _ in images[0].constraints]
+    for i, C in enumerate(constraints):
+
+	# Turn any arrays in the kwargs into lists
+	for k, v in list(C['kwargs'].items()):
+	    if isinstance(v, np.ndarray):
+		constraints[i]['kwargs'][k] = v.tolist()
+
+    # Convert any arrays from the parameter settings into lists
+    keys = images[0].info
+    for k, v in list(keys.items()):
+	if isinstance(v, np.ndarray):
+	    keys[k] = v.tolist()
+
+    data = {'trajectory': {}}
+    # Assemble the compressed dictionary of results
+    for i, atoms in enumerate(images):
+
+	if i == 0:
+	    # For first images, collect cell and positions normally
+	    pos = atoms.get_positions()
+	    update_pos = pos
+
+	    cell = atoms.get_cell()
+	    update_cell = cell
+
+	    # Add the parameters which do not change
+	    data['numbers'] = images[0].get_atomic_numbers().tolist()
+	    data['pbc'] = images[0].get_pbc().tolist()
+	    data['constraints'] = constraints
+	    data['calculator_parameters'] = keys
+
+	else:
+	    # For consecutive images, check for duplication
+	    # If duplicates are found, do not store it
+	    if np.array_equal(atoms.get_positions(), pos):
+		update_pos = np.array([])
+	    else:
+		pos = atoms.get_positions()
+		update_pos = pos
+
+	    if np.array_equal(atoms.get_cell(), cell):
+		update_cell = np.array([])
+	    else:
+		cell = atoms.get_cell()
+		update_cell = cell
+
+	if atoms._calc:
+	    nrg = atoms.get_potential_energy()
+	    force = atoms.get_forces()
+	    stress = atoms.get_stress()
+
+	    # Stage results and convert to lists in needed
+	    results = {
+		'positions': update_pos,
+		'cell': update_cell,
+		'energy': nrg,
+		'forces': force,
+		'stress': stress}
+
+	else:
+	    results = {
+		'positions': update_pos,
+		'cell': update_cell}
+
+	for k, v in list(results.items()):
+	    if isinstance(v, np.ndarray):
+		results[k] = v.tolist()
+
+	# Store trajectory, throwing out None values
+	data['trajectory'][i] = {
+	    k: v for k, v in list(
+		results.items()) if v is not None}
+
+    # Return the reduced results in JSON compression
+    return json.dumps(data)
 </pre>
 </div>
 
 <p>
-I prefer to have my own installation of <a href="https://www.anaconda.com/download/#linux">Anaconda</a> on each of my machines because it makes package management easier and comes pre-packaged with many useful modules for scientific programming. According to the Fireworks <a href="https://materialsproject.github.io/fireworks/installation.html">website</a>, Python 2.7.3+ or 3.3+ should be sufficient. The real test is whether you can install the correct modules or not. This should work well enough on a personal machine, but may not on a server. The \(--user\) flag is used to install the modules into the home directory so that super user privileges are not needed.
+Now that I have this function, I can store it into my path can call it to turn an atoms object into a JSON string which is safe to add into the database. Lets revisit the original quantum espresso example and see how this works.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">pip install -U --user pip
-pip install -U --user setuptools
-pip install --user fireworks
-pip install --user numpy
-pip install --user scipy
-pip install --user matplotlib  # Used for the GUI
+<pre class="src src-python">#!/usr/bin/env python
+from ase import Atoms
+from qefw import atoms_to_encode
+
+# Define the ase-espresso keys we will use.
+keys = {
+    'mode': 'relax',
+    'opt_algorithm': 'bfgs',
+    'xc': 'RPBE',
+    'outdir': '.',
+    'output': {'removesave': True},
+    'pw': 200,
+    'dw': 2000,
+    'dipole': {'status': True},
+    'kpts': (1, 1, 1),
+    'calcstress': True,
+    'convergence': {
+	'energy': 1e-5,
+	'mixing': 0.35}}
+
+# Create the atoms object
+atoms = Atoms(
+    'H2',
+    [[0.0, 0.0, 0.0],
+     [0.0, 0.0, 0.8]])
+atoms.center(vacuum=4)
+atoms.info = keys
+
+# Call the encoding function.
+encoding = atoms_to_encode(atoms)
+
+print(encoding)
 </pre>
 </div>
 
 <p>
-Once the simple modules are installed, you will likely want to install <a href="https://github.com/vossjo/ase-espresso">ase-espresso</a> if you intend to use Quantum Espresso. On the cluster I assume this is contained within the one of the PATH calls, but I'm not sure where. Instead, I choose to maintain my own version of ase-espresso, which is simple enough install from git. First, move to a directory where you want to install ase-espresso and run the following.
+This provides a lovely bundled up atoms object which is complete with the ase-espresso keywords we expect to be run with this atoms object. Not only is this exactly what we need to run the calculation, it's also perfect documentation for calling on later to identify what this calculation is.
 </p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">git clone git@github.com:vossjo/ase-espresso.git espresso
-cd espresso
-cp espsite.py.example.SLURMsherlock espsite.py
-</pre>
-</div>
-
-<p>
-The final step in the code above will copy the example Sherlock template for running ase-espresso. Once this is finished you simply need to add the installation location to your PATH in your .bashrc file.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh"># Load ase-espresso
-export PYTHONPATH=~/code:$PYTHONPATH
-
-# Create a PSPPATH for running espresso jobs
-export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp
-</pre>
-</div>
-
-<p>
-The last line of code here points to the Pseudo potential paths to be used when preforming your calculations. You may want to change this to suit your own needs. that should cover all the details of setting up Qunatum Espresso and Fireworks from scratch.
-</p>
-
-<p>
-If you have trouble at this step, you have a few options:
-</p>
-</div>
-
-<div id="outline-container-sec-2-2-1" class="outline-4">
-<h4 id="sec-2-2-1"><span class="section-number-4">2.2.1</span> 1. Add a up-to-date version of Python to your PATH</h4>
-<div class="outline-text-4" id="text-2-2-1">
-<p>
-Fixing this can be as simple as adding a newer version of Python to your PATH. If you'd like to use mine, it can be found in the following location.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh"># added by Anaconda2 installer
-export PATH=/scratch/users/jrboes/anaconda2/bin:$PATH
-</pre>
-</div>
-
-<p>
-Johannes' version of Python is installed here:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">/home/vossj/suncat/bin/python2.7
-</pre>
-</div>
-
-<p>
-This is a nice quick fix and can be suitable for many users, assuming the PATH does not change.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-2-2-2" class="outline-4">
-<h4 id="sec-2-2-2"><span class="section-number-4">2.2.2</span> 2. Personal Anaconda installation</h4>
-<div class="outline-text-4" id="text-2-2-2">
-<p>
-My first choice was to install Anaconda which is as simple as running the following script and then following the direction in your terminal.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">cd $SCRATCH
-curl -O https://repo.continuum.io/archive/Anaconda2-5.0.1-Linux-x86_64.sh
-bash Anaconda2-5.0.1-Linux-x86_64.sh
-</pre>
-</div>
-
-<p>
-This is my preferred choice because it provides direct control over the modules which I am using. An absolute must for a method developer and likely to be useful for others as well. This will take some setting up on the users part, but most modules can now be installed easily with pip so this will make your life easier in the long run.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-2-2-3" class="outline-4">
-<h4 id="sec-2-2-3"><span class="section-number-4">2.2.3</span> 3. Install a virtual environment</h4>
-<div class="outline-text-4" id="text-2-2-3">
-<p>
-Similar to the script above, you can create your own virtual environment for Python. At the moment, I do not do this myself, so I am not familiar with the details of the process, but he rough idea is illustrated in the script above. As I mentioned above, if you want your Fireworks environment to be separate from your standard environment, this is the best way to go.
-</p>
-</div>
 </div>
 </div>
 
 <div id="outline-container-sec-2-3" class="outline-3">
-<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Setting up the YAML files</h3>
+<h3 id="sec-2-3"><span class="section-number-3">2.3</span> Recovering an atoms object from encoding</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
-Nest we need to create a Fireworks directory in SCRATCH and change into it.
+Now that we have a JSON representation of our atoms object, we will be able to send this string to the database have have it stored for future use. Once the calculation gets called up on one of the clusters however, we will need some way of turning that JSON string back into an atoms object so that the local installation of ASE knows how to use it as an atoms object.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">mkdir $SCRATCH/fireworks
-cd $SCRATCH/fireworks
-mkdir logs
+<pre class="src src-python">import json
+from ase.calculators.singlepoint import SinglePointCalculator as SPC
+from ase.io import write
+from ase import Atoms
+from ase.constraints import dict2constraint
+
+
+def encode_to_atoms(encode, out_file='input.traj'):
+    """ Dump the encoding to a local traj file.
+    """
+
+    # First, decode the trajectory
+    data = json.loads(encode, encoding='utf-8')
+
+    # Construct the initial atoms object
+    atoms = Atoms(
+	data['numbers'],
+	data['trajectory']['0']['positions'],
+	cell=data['trajectory']['0']['cell'],
+	pbc=data['pbc'])
+    atoms.info = data['calculator_parameters']
+    atoms.set_constraint([dict2constraint(_) for _ in data['constraints']])
+
+    # Attach the calculator
+    calc = SPC(
+	atoms=atoms,
+	energy=data['trajectory']['0'].get('energy'),
+	forces=data['trajectory']['0'].get('forces'),
+	stress=data['trajectory']['0'].get('stress'))
+    atoms.set_calculator(calc)
+
+    # Collect the rest of the trajectory information
+    images = [atoms]
+    for i in range(len(data['trajectory']))[1:]:
+	atoms = atoms.copy()
+
+	if data['trajectory'][str(i)]['cell']:
+	    atoms.set_cell(data['trajectory'][str(i)]['cell'])
+
+	if data['trajectory'][str(i)]['positions']:
+	    atoms.set_positions(data['trajectory'][str(i)]['positions'])
+
+	calc = SPC(
+	    atoms=atoms,
+	    energy=data['trajectory'][str(i)].get('energy'),
+	    forces=data['trajectory'][str(i)].get('forces'),
+	    stress=data['trajectory'][str(i)].get('stress'))
+	atoms.set_calculator(calc)
+
+	images += [atoms]
+
+    # Write the traj file
+    if out_file:
+	write(out_file, images)
+
+    return images
 </pre>
 </div>
 
 <p>
-By default, Fireworks will create the jobs which it runs on the Sherlock cluster in files named Block-* inside of the directory where the ``launchpad'' is located. We can create this yaml file using the \(lpad init\) command which comes with the newly installed Fireworks module. This will walk you through the addition of your credentials automatically with the following prompt.
+This function can be found here.
+</p>
+
+<p>
+Now we can convert our JSON encoding back into an atoms object complete with the calculation parameters which were attached before they left the computer we generated them on. I do this on the same machine here simply to demonstrate the concept.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">jrboes@sherlock1 /scratch/users/jrboes/fireworks $ lpad init
-Please supply the following configuration values
-(press Enter if you want to accept the defaults)
+<pre class="src src-python">#!/usr/bin/env python
+from ase import Atoms
+from qefw import atoms_to_encode, encode_to_atoms
 
-Enter host (default: localhost) : suncatls2.slac.stanford.edu
-Enter port (default: 27017) :
-Enter name (default: fireworks) : your_database_name
-Enter username (default: None) : your_username
-Enter password (default: None) : your_password
-Enter ssl_ca_file (default: None) : 
+# Define the ase-espresso keys we will use.
+keys = {
+    'mode': 'relax',
+    'opt_algorithm': 'bfgs',
+    'xc': 'RPBE',
+    'outdir': '.',
+    'output': {'removesave': True},
+    'pw': 200,
+    'dw': 2000,
+    'dipole': {'status': True},
+    'kpts': (1, 1, 1),
+    'calcstress': True,
+    'convergence': {
+	'energy': 1e-5,
+	'mixing': 0.35}}
 
-Configuration written to my_launchpad.yaml!
-</pre>
-</div>
+# Create the atoms object
+atoms = Atoms(
+    'H2',
+    [[0.0, 0.0, 0.0],
+     [0.0, 0.0, 0.8]])
+atoms.center(vacuum=4)
+atoms.info = keys
 
-<p>
-This will generate a file named ``my<sub>launchpad</sub>.yaml'' which contains the following.
-</p>
+# Call the encoding function.
+encoding = atoms_to_encode(atoms)
 
-<div class="org-src-container">
+print(encoding)
 
-<pre class="src src-sh">host: suncatls2.slac.stanford.edu
-logdir: null
-name: your_database_name
-password: your_password
-port: 27017
-ssl: false
-ssl_ca_certs: null
-ssl_certfile: null
-ssl_keyfile: null
-ssl_pem_passphrase: null
-strm_lvl: INFO
-user_indices: []
-username: your_username
-wf_user_indices: []
-</pre>
-</div>
+recoved_atoms = encode_to_atoms(encoding)
 
-<p>
-You can also simply create this file by copying your credentials into a similarly named file in this directory. Don't forget to change the placeholder credentials to your own.
-</p>
-
-<p>
-Next we need a ``my<sub>fireworker</sub>.yaml'' file for keeping track of the server where Fireworks are being run. Create a file of this name and add the following.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">name: sherlock
-category: ''
-query: '{}'
-</pre>
-</div>
-
-<p>
-The ``name'' is that will appear in the database to indicate which server a Firework was run on. 
-</p>
-
-<p>
-The last required yaml file is a ``my<sub>qadapter</sub>.yaml'' file. This will contain the details of how the jobs which are committed to the queue are run.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">_fw_name: CommonAdapter
-_fw_q_type: SLURM 
-rocket_launch: rlaunch -w $SCRATCH/fireworks/my_fireworker.yaml -l $SCRATCH/fireworks/my_launchpad.yaml singleshot
-nodes: 2
-ntasks_per_node: 16
-walltime: '48:00:00'
-queue: owners,iric,normal
-account: null
-job_name: fw
-pre_rocket: null
-post_rocket: null
-logdir: /scratch/users/jrboes/fireworks/logs/
-</pre>
-</div>
-
-<p>
-These are my default settings, but you may want to set them differently depending on your needs. Keep in mind that you will not be able to specify which jobs are run on which server using the default Fireworks settings. That means the queue adapter needs to be generic to all of the jobs you run.
-</p>
-
-<p>
-Another important difference in this step for my purposes is that I do not add anything to my pre<sub>rocket</sub>. The pre<sub>rocket</sub> is bash code which is executed before the main body of code. For the automated script in the first section, the PATH and LB<sub>LIBRARY</sub><sub>PATH</sub> information needed to run Quantum Espresso on Sherlock is added here. This is to keep the environment that Fireworks runs in completely segregated from whichever setup is already in place for you on Sherlock. This can make troubleshooting very convoluted since it requires an understanding of where PATH information is being called from under which contexts. This can be made worse by using existing installations of Python which are also calling PATH information which can make things run differently in the QUEUE than they do on the headnode.
-</p>
-
-<p>
-One example of this is Johannes' installation of Python here:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">cat /home/vossj/suncat/bin/python_s2.0
-</pre>
-</div>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">#!/bin/bash
-ls -ld /home/vossj &amp;&gt;/dev/null
-if [ -d /home/vossj ]; then
-  export PATH=/home/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
-  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/vossj/suncat/lib:/home/vossj/suncat/lib64:$LD_LIBRARY_PATH
-  [ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp
-  [ "x$VASP_SCRIPT" = "x" ] &amp;&amp; export VASP_SCRIPT=/home/vossj/suncat/vbin/vasp.py
-  [ "x$VASP_PP_PATH" = "x" ] &amp;&amp; export VASP_PP_PATH=/home/vossj/suncat/vpsp/pseudo52
-  exec /home/vossj/suncat/bin/python2.7 "$@"
-else
-  export PATH=/home/users/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/home/users/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
-  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/users/vossj/suncat/lib:/home/users/vossj/suncat/lib64:/home/users/vossj/suncat/lib/s2.0:$LD_LIBRARY_PATH
-  if [ "x$PYTHONPATH" = "x" ]; then
-    export PYTHONPATH=/home/users/vossj/suncat/lib/python2.7/site-packages
-  else
-    export PYTHONPATH=PYTHONPATH:/home/users/vossj/suncat/lib/python2.7/site-packages
-  fi
-  export PATH=/home/users/vossj/suncat/s2/qe5/bin:/home/users/vossj/suncat/s2/ompi2.1.0/bin:/share/software/user/restricted/icc/2017.u2/bin:/share/software/user/restricted/ifort/2017.u2/bin:/share/software/user/restricted/imkl/2017.u2/bin:/home/users/vossj/bin:/home/users/vossj/suncat/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/share/software/user/srcc/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/dell/srvadmin/bin:$PATH
-  export LD_LIBRARY_PATH=/home/users/vossj/suncat/s2/ompi2.1.0/lib:/share/software/user/restricted/icc/2017.u2/lib/intel64:/share/software/user/restricted/ifort/2017.u2/lib/intel64:/share/software/user/restricted/imkl/2017.u2/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/users/vossj/suncat/lib:/home/users/vossj/suncat/lib64:/home/users/vossj/suncat/lib/s2.0:$LD_LIBRARY_PATH
-  [ "x$ESP_PSP_PATH" = "x" ] &amp;&amp; export ESP_PSP_PATH=/home/users/vossj/suncat/esdld/psp
-  [ "x$VASP_SCRIPT" = "x" ] &amp;&amp; export VASP_SCRIPT=/home/users/vossj/suncat/vbin/vasp.py
-  [ "x$VASP_PP_PATH" = "x" ] &amp;&amp; export VASP_PP_PATH=/home/users/vossj/suncat/vpsp/pseudo52
-  exec /home/users/vossj/suncat/bin/python2.7 "$@"
-</pre>
-</div>
-
-<p>
-The first if statement above is checking if we are on Sherlock 1 or 2. Notice that the PATH information provided here is the same PATH information provided in the automated script. These are the libraries which are required for running Quantum Espresso. To help my own understanding, I chose to add this PATH information to my .bashrc file. This way, my library environment is consistent in ALL contexts which is very useful for troubleshooting purposes.
-</p>
-
-<p>
-Here is a copy of the Sherlock 1 specific section of my .bashrc. Loading them here prevents the need to load them in the pre<sub>rocket</sub> or using the ``/home/vossj/suncat/bin/python<sub>s2</sub>.0'' script when calling my own version of Python.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">if [[ "$SHERLOCK" == "1" ]]; then
-  export CLUSTER='sherlock'
-
-  # For QE from: /home/vossj/suncat/bin/python_s2.0
-  export PATH=/home/vossj/suncat/bin:$PATH
-  export PATH=/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:$PATH
-  export PATH=/home/vossj/suncat/esdld/espresso-dynpy-beef/bin:$PATH
-
-  export LD_LIBRARY_PATH=/home/vossj/suncat/lib:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=/home/vossj/suncat/lib64:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:$LD_LIBRARY_PATH
-  export LD_LIBRARY_PATH=/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:$LD_LIBRARY_PATH
-
-  # Personalize my terminal prompt
-  export PS1="\[\e[1;34m\]\u@sherlock1\[\e[1;34m\] \w $\[\e[0m\] "
-
-  # For VASP
-  export VASP_SCRIPT=/home/vossj/suncat/vbin1/vasp.py
-  export VASP_PP_PATH=/home/vossj/suncat/vpsp/pseudo52
-
-  # Load fireworks
-  alias lpad='lpad -l $SCRATCH/fireworks/my_launchpad.yaml'
-</pre>
-</div>
-
-<p>
-NOTE: While this setup is convenient for keeping things consistent in all working environments, that is also its weakness. It might not be suitable to load the Quantum Espresso libraries for other codes. If you suspect you'll have conflicting libraries needed for other software, this method is NOT for you.
-</p>
-
-<p>
-By the end of this section you should have a $SCRATCH/fireworks directory with the following files:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">my_fireworker.yaml
-my_launchpad.yaml
-my_qadapter.yaml
+print(atoms)
 </pre>
 </div>
 </div>
 </div>
 
 <div id="outline-container-sec-2-4" class="outline-3">
-<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Initializing the database</h3>
+<h3 id="sec-2-4"><span class="section-number-3">2.4</span> Performing a relaxation</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
-Up until this point, we have not constructed any database architecture which will tell our generic MongoDB how to run Fireworks. To make this process simpler, it is convenient to have an alias in the .bashrc file which tells the \(lpad\) command where your yaml files are.
+Now that we have all the tools we need to transfer an atoms object (and its tags) to the database and back again, we're ready to write a simple relaxaton script for executing on a generic atoms object.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">alias lpad='lpad -l $SCRATCH/fireworks/my_launchpad.yaml'
+<pre class="src src-python">from ase.io import read
+from fw.fwio import atoms_to_encode
+from qeio import log_to_atoms
+from espresso import espresso
+
+
+def get_potential_energy(in_file='input.traj'):
+    """ Performs a ASE get_potential_energy() call with
+    the ase-espresso calculator and the keywords
+    defined inside the atoms object information.
+
+    This can be a singlepoint calculation or a
+    full relaxation depending on the keywords.
+    """
+
+    # Read the input file from the current directory
+    atoms = read(in_file)
+
+    # Planewave basis set requires periodic boundary conditions
+    atoms.set_pbc([1, 1, 1])
+
+    # Setting up the calculator
+    calc = espresso(**atoms.info)
+    atoms.set_calculator(calc)
+
+    # Perform the calculation and write trajectory from log.
+    atoms.get_potential_energy()
+    images = log_to_atoms(out_file='output.traj')
+
+    # Save the calculator to the local disk for later use.
+    try:
+	calc.save_flev_output()
+    except(RuntimeError):
+	calc.save_output()
+
+    return atoms_to_encode(images)
 </pre>
 </div>
 
 <p>
-Now we can run a simple command which will automatically design our database with Fireworks architecture so we can start running jobs.
+With this script, we can perform a relaxation test using a script very similar to our first example without ever submitting anything to Fireworks. It would be a good idea to run this using a similar sbatch command on Sherlock to ensure that all of the functions are setup correctly before proceeding to the next step.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">lpad reset
+<pre class="src src-python">from ase import Atoms
+from qefw import atoms_to_encode, encode_to_atoms, get_potential_energy
+
+# Define the ase-espresso keys we will use.
+keys = {
+    'mode': 'relax',
+    'opt_algorithm': 'bfgs',
+    'xc': 'RPBE',
+    'outdir': '.',
+    'output': {'removesave': True},
+    'pw': 200,
+    'dw': 2000,
+    'dipole': {'status': True},
+    'kpts': (1, 1, 1),
+    'calcstress': True,
+    'convergence': {
+	'energy': 1e-5,
+	'mixing': 0.35}}
+
+# Create the atoms object
+atoms = Atoms(
+    'H2',
+    [[0.0, 0.0, 0.0],
+     [0.0, 0.0, 0.8]])
+atoms.center(vacuum=4)
+atoms.info = keys
+
+# Call the encoding function.
+encoding = atoms_to_encode(atoms)
+atoms = encode_to_atoms(encoding)
+
+# Run the calculation
+images = get_potential_energy()
 </pre>
 </div>
 
 <p>
-Once completed, you will have a database which is ready to go. You can also add a script to your fireworks file which will start the automatic submission of your jobs once they are added to the database.
+Completing this calculation will give you an output with the following files
 </p>
+
+<div class="export">
+<p>
+ls -lha
+</p>
+
+</div>
 
 <div class="org-src-container">
 
-<pre class="src src-sh">#!/bin/bash
-cd $SCRATCH/fireworks
-nohup qlaunch rapidfire -m 40 --nlaunches infinite &amp;
+<pre class="src src-sh">-rw-r--r-- 1 jrboes suncat 3.6M Dec  3 18:32 calc.tgz
+-rw-r--r-- 1 jrboes suncat  644 Dec  3 18:32 input.traj
+-rw-r--r-- 1 jrboes suncat  28K Dec  3 18:32 log
+-rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 nodefile.18552100
+-rw-r--r-- 1 jrboes suncat 3.3K Dec  3 18:32 output.traj
+-rw-r--r-- 1 jrboes suncat 1.2K Dec  3 18:32 pw.inp
+-rw-r--r-- 1 jrboes suncat  765 Dec  3 18:32 script2.py
+-rw-r--r-- 1 jrboes suncat  392 Dec  3 18:32 stderr
+-rw-r--r-- 1 jrboes suncat    0 Dec  3 18:32 stdout
+-rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 uniqnodefile.18552100
 </pre>
 </div>
-
-<p>
-Running this script will submit a maximum of 40 jobs to the queue for as long as the command is running. Using nohup to run the command will keep it running as a daemon in the background even after your logged out. This is not always reliable for some reason, so it can be helpful to increase the maximum queue count so that you don't need to constantly monitor this. Also, it should be safe to run this before having submitted jobs to be run to the database since Fireworks does not add jobs if there are none to be run.
-</p>
-
-<p>
-This is a fairly long post already, so I will save discussion of some of the basics of Fireworks submission (for Quantum Espresso) for next time. Getting used to the way Fireworks operates is much more challenging then actually installing it.
-</p>
 </div>
 </div>
 
 <div id="outline-container-sec-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Other recourses:</h3>
+<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Recovering an existing calculator</h3>
 <div class="outline-text-3" id="text-2-5">
 <p>
-An introductory presentation to from former post-doc Zack Ulissi: <a href="https://docs.google.com/presentation/d/1w8XW8Q-JhWRM7-MjOB7R53UoAe42t-CKWNuZLmQSvgA/edit#slide=id.p">Google slides</a>.
+From the previous script, we now have a calculation which is a good save point for building off of new calculations. By loading in the `calc.tgz` file which was saved, we can restart our calculation from the finished relaxation using the following script.
 </p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">from espresso import espresso
+from ase.io import read
+
+def get_relaxed_calculation(in_file='output.traj'):
+    """ Attach a stored calculator in the current directory
+    to the provided atoms object.
+
+    Then return the atoms object with the calculator attached.
+    """
+
+    # Read the last geometry from the input file
+    atoms = read(in_file)
+
+    # Reinitialize the calculator from calc.tgz and attach it.
+    calc = espresso(**atoms.info)
+    calc.load_flev_output()
+    atoms.set_calculator(calc)
+
+    return atoms
+</pre>
 </div>
+
+<p>
+If we combine this with a post-processing operation, like collecting th total potential, we can restart out calculation in a new place without having to perform the relaxation a second time. You should be able to perform whatever follow up operation you want on this compressed version of the calculation, so this is a nice way to store information without performing unnecessary post-processing that you may or may not use later.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">import msgpack
+import json
+from qefw import array_to_list, get_relaxed_calculation
+
+
+def get_total_potential(out_file='potential.msg'):
+    """ Calculate and save the total potential
+    """
+
+    # We require a previously relaxed calculation for this.
+    atoms = get_relaxed_calculation()
+    calc = atoms.get_calculator()
+
+    # Collect the total potential and write to disk
+    potential = calc.extract_total_potential()
+
+    potential = list(potential)
+    array_to_list(potential)
+
+    # If outfile, write a MessagePack encoded version to disk
+    if out_file:
+	with open(out_file, 'w') as f:
+	    msgpack.dump(potential, f)
+
+    # Return a BSON friendly version
+    return json.dumps(potential, encoding='utf-8')
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Running through Fireworks</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Finally, we are ready to submit a basic calculation to Fireworks using the tools discussed above. To keep this documentation interactive, I will be pulling my own credentials from a secure file. This will looks like the following in the code that follows.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">from netrc import netrc
+
+# Read credentials from a secure location
+host = 'suncatls2.slac.stanford.edu'
+username, name, password = netrc().authenticators(host)
+
+print(username, name, password)
+</pre>
+</div>
+
+<p>
+Now we can connect to the launchpad of Fireworks using the following code.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">from fireworks import LaunchPad, Firework, Workflow, PyTask
+from ase.collections import g2
+from ase.units import Ry
+from math import ceil
+from fw.fwio import atoms_to_encode
+from netrc import netrc
+from ase import Atoms
+
+# Read credentials from a secure location
+host = 'suncatls2.slac.stanford.edu'
+username, name, password = netrc().authenticators(host)
+
+launchpad = LaunchPad(
+    host=host,
+    name=name,
+    username=username,
+    password=password)
+
+# Define the ase-espresso keys we will use.
+keys = {
+    'mode': 'relax',
+    'opt_algorithm': 'bfgs',
+    'xc': 'RPBE',
+    'outdir': '.',
+    'output': {'removesave': True},
+    'pw': 200,
+    'dw': 2000,
+    'dipole': {'status': True},
+    'kpts': (1, 1, 1),
+    'calcstress': True,
+    'convergence': {
+	'energy': 1e-5,
+	'mixing': 0.35}}
+
+# Create the atoms object
+atoms = Atoms(
+    'H2',
+    [[0.0, 0.0, 0.0],
+     [0.0, 0.0, 0.8]])
+atoms.center(vacuum=4)
+atoms.info = keys
+
+# Encode the atoms
+encoding = atoms_to_encode(atoms)
+
+# Define some searching keys 
+search_keys = {'molecule': 'H2'}
+
+# Two steps - write the input structure to an input file, then relax
+t0 = PyTask(
+    func='qefw.encode_to_atoms',
+    args=[encoding])
+t1 = PyTask(
+    func='qefw.get_potential_energy',
+    stored_data_varname='trajectory')
+
+# Package the tasks into a firework, the fireworks into a workflow,
+# and submit the workflow to the launchpad
+firework = Firework([t0, t1], spec={'_priority': 1}, name=search_keys)
+workflow = Workflow([firework])
+launchpad.add_wf(workflow)
+</pre>
+</div>
+
+<p>
+After running this script, if you have already initiated Fireworks rapidfire on Sherlock, you can see how to do this in the previous post: <a href="./suncat-fireworks.html">./suncat-fireworks.html</a>. Once it is turned on, Sherlock should submit a job to the queue automatically.
+</p>
+
+<p>
+So what's going on here exactly? We'll for full details about the differences between a PyTask, Firework, and Wroflow, I would recommend looking into the in-depth documentation available on the <a href="https://materialsproject.github.io/fireworks/">Fireworks website</a>. When this calculation runs, it will perform 2 distinct operations on the calculation node once it is started. The first, \(t0\), is the qefw.encode<sub>to</sub><sub>atoms</sub> function demonstrated previously. (NOTE: Make sure the qefw functions are on the PYHONPATH on the server before you run this example!). This will unpack the encoding which is stored in the database by passing \(encoding\) as an argument to the first function. This allows me to run this script from my local machine and still have the encoding uploaded to the database and decoded on the server. This is very useful for me because I enjoy using a heavy version of emacs which does not run well on the servers.
+</p>
+
+<p>
+Once the \(t0\) task is performed successfully, the \(t1\) task will begin and perform the relaxation on the calculation node as well. Since the \(qefw.get_potential_energy\) function returns the images of the atoms objects encoded into JSON, we can also tell Fireworks to store that output into the 'spec.trajectory' field of the results by assigning \(stored_data_varname='trajectory'\). This is extremely useful since most of the information I am ever looking for is included in the final trajectory file. If you need more specific information from the file, these functions should provide a pretty clear example of how you would go about doing that. Keep in mind that all information must be in a compatible format for the MongoDB database. JSON is a pretty safe bet in that regard.
+</p>
+
+<p>
+You could also add in a \(t3\) task which performs your own follow-up tasks, such as the \(get_total_potential\) example above.
+</p>
+
+<p>
+You can monitor the progress of your calculation with the webgui the following bash script. For me, lpad is an alias with a \(-f\) argument which points to my ``my<sub>fireworks</sub>.yaml'' file.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">lpad webgui
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Collecting information from Fireworks</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Once the calculation has finished, you can collect the final trajectory simply by accessing the ID of the completed calcualtion from the LaunchPad.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">from fireworks import LaunchPad
+from qefw import encode_to_atoms
+from netrc import netrc
+
+# Read credentials from a secure location
+host = 'suncatls2.slac.stanford.edu'
+username, name, password = netrc().authenticators(host)
+
+launchpad = LaunchPad(
+    host=host,
+    name=name,
+    username=username,
+    password=password)
+
+# Select the ID of the first completed calcualtion
+ID = launchpad.get_fw_ids(query={'state': 'COMPLETED'})[0]
+
+launch = launchpad.get_fw_dict_by_id(ID)
+
+encoding = launch['launches'][-1]['action']['stored_data']['trajectory']
+images = encode_to_atoms(encoding)
+
+print(images)
+</pre>
+</div>
+
+<p>
+The truly beautiful thing about this code is that it can be performed from my local machine, just the same way the previous submission script was. If you set up your calculation inputs and outputs, there's no need to interact with anything on the server during for regular usage purposes!
+</p>
+
+<p>
+This is a wonderful tool and an excellent skill for any computational catalysis researcher to poses. Fireworks also have far more capabilities for automation then what I have covered here. In future posts, I will dive into these features in more detail as I continue to explore them.
+</p>
+
+<p>
+Until then, happy programming!
+</p>
 </div>
 </div>
                 </article>
@@ -555,6 +1009,40 @@ An introductory presentation to from former post-doc Zack Ulissi: <a href="https
                     <h1>Other articles</h1>
                     <hr />
                     <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="../2017/suncat-fireworks.html" rel="bookmark"
+                           title="Permalink to Installing Fireworks on Sherlock">Installing Fireworks on Sherlock</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-12-03T00:00:00-08:00">
+                Published: Sun 03 December 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
+        </address>
+<p>In <a href="../category/blog.html">blog</a>.</p>
+<p>tags: <a href="../tag/fireworks.html">fireworks</a> <a href="../tag/quantum-espresso.html">quantum-espresso</a> </p>
+</footer><!-- /.post-info -->                <div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Getting access to MongoDB</a></li>
+<li><a href="#sec-2">2. Fireworks on Sherlock</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Automatic setup script</a></li>
+<li><a href="#sec-2-2">2.2. Installing Python and modules</a>
+<ul>
+<li><a href="#sec-2-2-1">2.2.1. 1. Add a up-to-date version of Python to your PATH</a></li>
+<li><a href="#sec-2-2-2">2.2.2. 2. Personal Anaconda installation</a></li>
+<li><a href="#sec-2-2-3">2.2.3. 3. Install a virtual …</a></li></ul></li></ul></li></ul></div></div>
+                <a class="readmore" href="../2017/suncat-fireworks.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>

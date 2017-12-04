@@ -6,29 +6,34 @@
         <link rel="stylesheet" href="../theme/css/main.css" />
 
         <!--[if IE]>
-            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 </head>
 
 <body id="index" class="home">
 <a href="https://github.com/jboes">
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" />
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
 </a>
         <header id="banner" class="body">
                 <h1><a href="../">Boes' Blog  <strong>Exploration through coding, catalysis, and education</strong></a></h1>
                 <nav><ul>
-    
-                        <li><a href="../pages/about.html">About</a></li>
-                </ul>
-                </nav>
+                    <li><a href="../pages/about.html">About</a></li>
+                </ul></nav>
         </header><!-- /#banner -->
 
             <aside id="featured" class="body">
                 <article>
                     <h1 class="entry-title"><a href="../2017/org-in-pelican.html">Integrating org-mode with Pelican</a></h1>
 <footer class="post-info">
-        <span>Tue 13 June 2017</span>
-<span>| tags: <a href="../tag/publishing.html">publishing</a></span>
+        <abbr class="published" title="2017-06-13T00:00:00-07:00">
+                Published: Tue 13 June 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
+        </address>
+<p>In <a href="../category/blog.html">blog</a>.</p>
+<p>tags: <a href="../tag/publishing.html">publishing</a> </p>
 </footer><!-- /.post-info --><p>
 I have finally made time to return to my blog and update some information now that I am at SUNCAT. I will be picking up from where I left off as I have made some changes to my setup due to some data loss during the transition.
 </p>
@@ -54,10 +59,11 @@ This requires a slight modification to the code put into the '.git/hooks/post-co
 <p>
 This is exactly as it appears on the <a href="http://docs.getpelican.com/en/3.7.1/tips.html">tips section</a> of the Pelican documentation, but with my personal repo added in.
 </p>
-<p><a href="../2017/org-in-pelican.html#disqus_thread">comments</a></p>                </article>
+<p>There are <a href="../2017/org-in-pelican.html#disqus_thread">comments</a>.</p>                </article>
             </aside><!-- /#featured -->
                 <section id="content" class="body">
                     <h1>Other articles</h1>
+                    <hr />
                     <ol id="posts-list" class="hfeed">
 
             <li><article class="hentry">
@@ -68,8 +74,19 @@ This is exactly as it appears on the <a href="http://docs.getpelican.com/en/3.7.
 
                 <div class="entry-content">
 <footer class="post-info">
-        <span>Thu 14 July 2016</span>
-<span>| tags: <a href="../tag/publishing.html">publishing</a></span>
+        <abbr class="published" title="2016-07-14T00:00:00-07:00">
+                Published: Thu 14 July 2016
+        </abbr>
+		<br />
+        <abbr class="modified" title="2017-06-11T00:00:00-07:00">
+                Updated: Sun 11 June 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
+        </address>
+<p>In <a href="../category/blog.html">blog</a>.</p>
+<p>tags: <a href="../tag/publishing.html">publishing</a> </p>
 </footer><!-- /.post-info -->                <p>
 This is a test post using Pelican.
 </p>
@@ -77,16 +94,13 @@ This is a test post using Pelican.
 <p>
 Pelican has a lot of convenient features which make integration with my Github personal site easy. Including the pelican files in an orphan branch allows me to keep the build files contained in the same repository so I can get it quickly on …</p>
                 <a class="readmore" href="../2016/first_post.html">read more</a>
-<p><a href="../2016/first_post.html#disqus_thread">comments</a></p>                </div><!-- /.entry-content -->
+<p>There are <a href="../2016/first_post.html#disqus_thread">comments</a>.</p>                </div><!-- /.entry-content -->
             </article></li>
-            </ol><!-- /#posts-list -->
-<p class="paginator">
-    Page 1 / 1
-</p>
-            </section><!-- /#content -->
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
         <section id="extras" class="body">
                 <div class="blogroll">
-                        <h2>blogroll</h2>
+                        <h2>links</h2>
                         <ul>
                             <li><a href="https://orcid.org/0000-0002-7303-7782">ORCID</a></li>
                             <li><a href="https://scholar.google.com/citations?user=EqNyNOcAAAAJ&hl=en&oi=ao">Google Scholar</a></li>
@@ -104,25 +118,28 @@ Pelican has a lot of convenient features which make integration with my Github p
         </section><!-- /#extras -->
 
         <footer id="contentinfo" class="body">
-                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
         </footer><!-- /#contentinfo -->
 
     <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-110598894-1']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-110598894-1', 'auto');
+    ga('send', 'pageview');
     </script>
 <script type="text/javascript">
     var disqus_shortname = 'jboes-github-io';
     (function () {
         var s = document.createElement('script'); s.async = true;
         s.type = 'text/javascript';
-        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
         (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
     }());
 </script>

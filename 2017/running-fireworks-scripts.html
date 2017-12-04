@@ -6,21 +6,19 @@
         <link rel="stylesheet" href="../theme/css/main.css" />
 
         <!--[if IE]>
-            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 </head>
 
 <body id="index" class="home">
 <a href="https://github.com/jboes">
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" />
+<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
 </a>
         <header id="banner" class="body">
                 <h1><a href="../">Boes' Blog  <strong>Exploration through coding, catalysis, and education</strong></a></h1>
                 <nav><ul>
-    
-                        <li><a href="../pages/about.html">About</a></li>
-                </ul>
-                </nav>
+                    <li><a href="../pages/about.html">About</a></li>
+                </ul></nav>
         </header><!-- /#banner -->
 <section id="content" class="body">
   <article>
@@ -32,8 +30,15 @@
 
     <div class="entry-content">
 <footer class="post-info">
-        <span>Sun 03 December 2017</span>
-<span>| tags: <a href="../tag/fireworks.html">fireworks</a><a href="../tag/quantum-espresso.html">quantum-espresso</a></span>
+        <abbr class="published" title="2017-12-03T00:00:00-08:00">
+                Published: Sun 03 December 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
+        </address>
+<p>In <a href="../category/blog.html">blog</a>.</p>
+<p>tags: <a href="../tag/fireworks.html">fireworks</a> <a href="../tag/quantum-espresso.html">quantum-espresso</a> </p>
 </footer><!-- /.post-info -->      <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
@@ -1022,21 +1027,23 @@ Until then, happy programming!
       <h2>Comments !</h2>
       <div id="disqus_thread"></div>
       <script type="text/javascript">
-        var disqus_identifier = "2017/running-fireworks-scripts.html";
-        var disqus_url = "../2017/running-fireworks-scripts.html";
+        var disqus_shortname = 'jboes-github-io';
+        var disqus_identifier = '2017/running-fireworks-scripts.html';
+        var disqus_url = '../2017/running-fireworks-scripts.html';
         (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
         dsq.src = '//jboes-github-io.disqus.com/embed.js';
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
         })();
       </script>
+      <noscript>Please enable JavaScript to view the comments.</noscript>
     </div>
 
   </article>
 </section>
         <section id="extras" class="body">
                 <div class="blogroll">
-                        <h2>blogroll</h2>
+                        <h2>links</h2>
                         <ul>
                             <li><a href="https://orcid.org/0000-0002-7303-7782">ORCID</a></li>
                             <li><a href="https://scholar.google.com/citations?user=EqNyNOcAAAAJ&hl=en&oi=ao">Google Scholar</a></li>
@@ -1054,25 +1061,28 @@ Until then, happy programming!
         </section><!-- /#extras -->
 
         <footer id="contentinfo" class="body">
-                <p>Powered by <a href="http://getpelican.com/">Pelican</a>. Theme <a href="https://github.com/blueicefield/pelican-blueidea/">blueidea</a>, inspired by the default theme.</p>
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
         </footer><!-- /#contentinfo -->
 
     <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-110598894-1']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-110598894-1', 'auto');
+    ga('send', 'pageview');
     </script>
 <script type="text/javascript">
     var disqus_shortname = 'jboes-github-io';
     (function () {
         var s = document.createElement('script'); s.async = true;
         s.type = 'text/javascript';
-        s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
         (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
     }());
 </script>

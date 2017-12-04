@@ -1,147 +1,186 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: http://ogp.me/ns# fb: https://www.facebook.com/2008/fbml">
 <head>
-        <meta charset="utf-8" />
-        <title>Boes' Blog - publishing</title>
-        <link rel="stylesheet" href="../theme/css/main.css" />
+    <title>publishing - Boes' Blog</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <!--[if IE]>
-            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
+
+
+
+    <meta name="author" content="Jacob Boes" />
+    <meta name="keywords" content="publishing" />
+
+    <!-- Open Graph tags -->
+        <meta property="og:site_name" content="Boes' Blog" />
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="Boes' Blog"/>
+        <meta property="og:url" content=".."/>
+        <meta property="og:description" content="Boes' Blog"/>
+
+
+
+    <!-- Bootstrap -->
+        <link rel="stylesheet" href="../theme/css/bootstrap.codeing-now.min.css" type="text/css"/>
+    <link href="../theme/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="../theme/css/pygments/native.css" rel="stylesheet">
+    <link rel="stylesheet" href="../theme/css/style.css" type="text/css"/>
+
+
+
+
+
 </head>
+<body>
 
-<body id="index" class="home">
-<a href="https://github.com/jboes">
-<img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" />
-</a>
-        <header id="banner" class="body">
-                <h1><a href="../">Boes' Blog  <strong>Exploration through coding, catalysis, and education</strong></a></h1>
-                <nav><ul>
-                    <li><a href="../pages/about.html">About</a></li>
-                </ul></nav>
-        </header><!-- /#banner -->
-
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="../2017/org-in-pelican.html">Integrating org-mode with Pelican</a></h1>
-<footer class="post-info">
-        <abbr class="published" title="2017-06-13T00:00:00-07:00">
-                Published: Tue 13 June 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
-        </address>
-<p>In <a href="../category/blog.html">blog</a>.</p>
-<p>tags: <a href="../tag/publishing.html">publishing</a> </p>
-</footer><!-- /.post-info --><p>
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+	<div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="../" class="navbar-brand">
+Boes' Blog            </a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                         <li><a href="../pages/about.html">
+                             About
+                          </a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</div> <!-- /.navbar -->
+<!-- Banner -->
+<!-- End Banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+            <article>
+                <h2><a href="../2017/org-in-pelican.html">Integrating org-mode with Pelican</a></h2>
+                <div class="summary"><p>
 I have finally made time to return to my blog and update some information now that I am at SUNCAT. I will be picking up from where I left off as I have made some changes to my setup due to some data loss during the transition.
 </p>
 
 <p>
-Firstly, Pelican has gained a significant number of <a href="https://github.com/getpelican/pelican-plugins">Plugins</a> since I last used it. Including <a href="https://github.com/getpelican/pelican-plugins/tree/master/org_reader">org-reader</a> which allows for seamless integration of org files as substitutes for Markdown &#x2013; more or less. I did find that the static content stored in 'pages' does not have its link information added to the title bar no matter how hard I try when using my old theme, <i>blueidea</i>. However, it does work in the original <i>notmyidea</i> which comes standard with the installation of Pelican. I've decided to use this theme for the time being until I can figure out what the trouble is. Now I can compose all of my posts natively in org documents using the same syntax that I use to write a manuscript, notes, code, etc.. Although much more convenient than composing in Markdown, I still need a method for managing blog posts from one central document and managing what is added to the content folder and when. John has done some work on this in emacs-lisp for his own blog, I believe, so I will look into that next.
-</p>
-
-<p>
-Finally, I have made some revisions to my current implementation on Github. It turns out this is far easier to manage with 2 Github repo, one for the website and another for the Pelican code which produces the website code. I did not have the later previously and lost my original pelican directory, hence the data-loss. Now, this information is publically available on Github at <a href="https://github.com/jboes/jboes.github.io-src">https://github.com/jboes/jboes.github.io-src</a>. This also allows me to rebuild the blog on any machine I might need it by pulling the repo and submodules.
-</p>
-
-<p>
-This requires a slight modification to the code put into the '.git/hooks/post-commit' file as shown below.
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-sh">pelican content -s pelicanconf.py &amp;&amp; ghp-import output &amp;&amp; git push git@github.com:jboes/jboes.github.io.git gh-pages:master
-</pre>
-</div>
-
-<p>
-This is exactly as it appears on the <a href="http://docs.getpelican.com/en/3.7.1/tips.html">tips section</a> of the Pelican documentation, but with my personal repo added in.
-</p>
-<p>There are <a href="../2017/org-in-pelican.html#disqus_thread">comments</a>.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="../2016/first_post.html" rel="bookmark"
-                           title="Permalink to First post in Pelican!">First post in Pelican!</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2016-07-14T00:00:00-07:00">
-                Published: Thu 14 July 2016
-        </abbr>
-		<br />
-        <abbr class="modified" title="2017-06-11T00:00:00-07:00">
-                Updated: Sun 11 June 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="../author/jacob.html">Jacob</a>
-        </address>
-<p>In <a href="../category/blog.html">blog</a>.</p>
-<p>tags: <a href="../tag/publishing.html">publishing</a> </p>
-</footer><!-- /.post-info -->                <p>
+Firstly, Pelican has …</p>
+                    <a class="btn btn-default btn-xs" href="../2017/org-in-pelican.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="../2016/first_post.html">First post in Pelican!</a></h2>
+                <div class="summary"><p>
 This is a test post using Pelican.
 </p>
 
 <p>
 Pelican has a lot of convenient features which make integration with my Github personal site easy. Including the pelican files in an orphan branch allows me to keep the build files contained in the same repository so I can get it quickly on …</p>
-                <a class="readmore" href="../2016/first_post.html">read more</a>
-<p>There are <a href="../2016/first_post.html#disqus_thread">comments</a>.</p>                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
-        <section id="extras" class="body">
-                <div class="blogroll">
-                        <h2>links</h2>
-                        <ul>
-                            <li><a href="https://orcid.org/0000-0002-7303-7782">ORCID</a></li>
-                            <li><a href="https://scholar.google.com/citations?user=EqNyNOcAAAAJ&hl=en&oi=ao">Google Scholar</a></li>
-                        </ul>
-                </div><!-- /.blogroll -->
-                <div class="social">
-                        <h2>social</h2>
-                        <ul>
+                    <a class="btn btn-default btn-xs" href="../2016/first_post.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
 
-                            <li><a href="https://github.com/jboes">GitHub</a></li>
-                            <li><a href="https://twitter.com/jacob_boes">Twitter</a></li>
-                            <li><a href="https://www.linkedin.com/in/jacobboes">Linkedin</a></li>
-                        </ul>
-                </div><!-- /.social -->
-        </section><!-- /#extras -->
+        </div>
+        <div class="col-sm-3" id="sidebar">
+            <aside>
+<!-- Sidebar -->
+<section class="well well-sm">
+  <ul class="list-group list-group-flush">
 
-        <footer id="contentinfo" class="body">
-                <address id="about" class="vcard body">
-                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
-                </address><!-- /#about -->
+<!-- Sidebar/Social -->
+<li class="list-group-item">
+  <h4><i class="fa fa-home fa-lg"></i><span class="icon-label">Social</span></h4>
+  <ul class="list-group" id="social">
+    <li class="list-group-item"><a href="https://github.com/jboes"><i class="fa fa-github-square fa-lg"></i> GitHub</a></li>
+    <li class="list-group-item"><a href="https://twitter.com/jacob_boes"><i class="fa fa-twitter-square fa-lg"></i> Twitter</a></li>
+    <li class="list-group-item"><a href="https://www.linkedin.com/in/jacobboes"><i class="fa fa-linkedin-square fa-lg"></i> Linkedin</a></li>
+  </ul>
+</li>
+<!-- End Sidebar/Social -->
 
-                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
-        </footer><!-- /#contentinfo -->
+<!-- Sidebar/Links -->
+<li class="list-group-item">
+  <h4><i class="fa fa-external-link-square fa-lg"></i><span class="icon-label">Links</span></h4>
+  <ul class="list-group" id="links">
+    <li class="list-group-item">
+      <a href="https://orcid.org/0000-0002-7303-7782" target="_blank">ORCID</a>
+    </li>
+    <li class="list-group-item">
+      <a href="https://scholar.google.com/citations?user=EqNyNOcAAAAJ&hl=en&oi=ao" target="_blank">Google Scholar</a>
+    </li>
+  </ul>
+</li>
+<!-- End Sidebar/Links -->
+  </ul>
+</section>
+<!-- End Sidebar -->            </aside>
+        </div>
+    </div>
+</div>
+<footer>
+   <div class="container">
+      <hr>
+      <div class="row">
+         <div class="col-xs-10">&copy; 2017 Jacob Boes
+            &middot; Powered by <a href="https://github.com/getpelican/pelican-themes/tree/master/pelican-bootstrap3" target="_blank">pelican-bootstrap3</a>,
+            <a href="http://docs.getpelican.com/" target="_blank">Pelican</a>,
+            <a href="http://getbootstrap.com" target="_blank">Bootstrap</a>         </div>
+         <div class="col-xs-2"><p class="pull-right"><i class="fa fa-arrow-up"></i> <a href="#">Back to top</a></p></div>
+      </div>
+   </div>
+</footer>
+<script src="../theme/js/jquery.min.js"></script>
 
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="../theme/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="../theme/js/respond.min.js"></script>
+
+
+    <!-- Disqus -->
     <script type="text/javascript">
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'jboes-github-io'; // required: replace example with your forum shortname
 
-    ga('create', 'UA-110598894-1', 'auto');
-    ga('send', 'pageview');
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.type = 'text/javascript';
+            s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+            (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+        }());
     </script>
-<script type="text/javascript">
-    var disqus_shortname = 'jboes-github-io';
-    (function () {
-        var s = document.createElement('script'); s.async = true;
-        s.type = 'text/javascript';
-        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
-        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-    }());
-</script>
+    <!-- End Disqus Code -->
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-110598894-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+    <!-- End Google Analytics Code -->
+
+
 </body>
 </html>

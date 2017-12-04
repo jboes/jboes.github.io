@@ -189,6 +189,12 @@ print(sys.version)
 </pre>
 </div>
 
+<pre class="example">
+3.6.2 |Anaconda, Inc.| (default, Sep 30 2017, 18:42:57) 
+[GCC 7.2.0]
+</pre>
+
+
 <p>
 I prefer to have my own installation of <a href="https://www.anaconda.com/download/#linux">Anaconda</a> on each of my machines because it makes package management easier and comes pre-packaged with many useful modules for scientific programming. According to the Fireworks <a href="https://materialsproject.github.io/fireworks/installation.html">website</a>, Python 2.7.3+ or 3.3+ should be sufficient. The real test is whether you can install the correct modules or not. This should work well enough on a personal machine, but may not on a server. The <code>--user</code> flag is used to install the modules into the home directory so that super user privileges are not needed.
 </p>
@@ -204,7 +210,7 @@ pip install --user matplotlib  # Used for the GUI
 </pre>
 </div>
 
-<p>
+<pre class="example">
 Requirement already up-to-date: pip in /home/jboes/anaconda3/lib/python3.6/site-packages
 Requirement already up-to-date: setuptools in /home/jboes/anaconda3/lib/python3.6/site-packages
 Requirement already satisfied: fireworks in /home/jboes/anaconda3/lib/python3.6/site-packages
@@ -222,18 +228,18 @@ Requirement already satisfied: pymongo&gt;=3.3.0 in /home/jboes/anaconda3/lib/py
 Requirement already satisfied: Werkzeug&gt;=0.7 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
 Requirement already satisfied: itsdangerous&gt;=0.21 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
 Requirement already satisfied: click&gt;=2.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
-Requirement already satisfied: MarkupSafe&gt;=0.23 in <i>home/jboes/anaconda3/lib/python3.6/site-packages (from Jinja2&gt;=2.8.0-&gt;fireworks)
-Requirement already satisfied: numpy in /home/jboes</i>.local/lib/python3.6/site-packages
-Requirement already satisfied: scipy in <i>home/jboes</i>.local/lib/python3.6/site-packages
-Requirement already satisfied: numpy&gt;=1.8.2 in <i>home/jboes</i>.local/lib/python3.6/site-packages (from scipy)
-Requirement already satisfied: matplotlib in <i>home/jboes</i>.local/lib/python3.6/site-packages
+Requirement already satisfied: MarkupSafe&gt;=0.23 in /home/jboes/anaconda3/lib/python3.6/site-packages (from Jinja2&gt;=2.8.0-&gt;fireworks)
+Requirement already satisfied: numpy in /home/jboes/.local/lib/python3.6/site-packages
+Requirement already satisfied: scipy in /home/jboes/.local/lib/python3.6/site-packages
+Requirement already satisfied: numpy&gt;=1.8.2 in /home/jboes/.local/lib/python3.6/site-packages (from scipy)
+Requirement already satisfied: matplotlib in /home/jboes/.local/lib/python3.6/site-packages
 Requirement already satisfied: six&gt;=1.10 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
 Requirement already satisfied: cycler&gt;=0.10 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
 Requirement already satisfied: pyparsing!=2.0.4,!=2.1.2,!=2.1.6,&gt;=2.0.1 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
-Requirement already satisfied: python-dateutil&gt;=2.0 in <i>home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
-Requirement already satisfied: pytz in /home/jboes</i>.local/lib/python3.6/site-packages (from matplotlib)
-Requirement already satisfied: numpy&gt;=1.7.1 in <i>home/jboes</i>.local/lib/python3.6/site-packages (from matplotlib)
-</p>
+Requirement already satisfied: python-dateutil&gt;=2.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: pytz in /home/jboes/.local/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: numpy&gt;=1.7.1 in /home/jboes/.local/lib/python3.6/site-packages (from matplotlib)
+</pre>
 
 <p>
 Once the simple modules are installed, you will likely want to install <a href="https://github.com/vossjo/ase-espresso">ase-espresso</a> if you intend to use Quantum Espresso. On the cluster I assume this is contained within the one of the PATH calls, but I'm not sure where. Instead, I choose to maintain my own version of ase-espresso, which is simple enough install from git. First, move to a directory where you want to install ase-espresso and run the following.
@@ -353,17 +359,6 @@ By default, Fireworks will create the jobs which it runs on the Sherlock cluster
 <div class="org-src-container">
 
 <pre class="src src-sh">jrboes@sherlock1 /scratch/users/jrboes/fireworks $ lpad init
-Please supply the following configuration values
-(press Enter if you want to accept the defaults)
-
-Enter host (default: localhost) : suncatls2.slac.stanford.edu
-Enter port (default: 27017) :
-Enter name (default: fireworks) : your_database_name
-Enter username (default: None) : your_username
-Enter password (default: None) : your_password
-Enter ssl_ca_file (default: None) : 
-
-Configuration written to my_launchpad.yaml!
 </pre>
 </div>
 
@@ -583,9 +578,8 @@ This is a fairly long post already, so I will save discussion of some of the bas
 An introductory presentation to from former post-doc Zack Ulissi: <a href="https://docs.google.com/presentation/d/1w8XW8Q-JhWRM7-MjOB7R53UoAe42t-CKWNuZLmQSvgA/edit#slide=id.p">Google slides</a>.
 </p>
 
-
 <p>
-The org-mode documentation used to produce this post is available <a href="./suncat-fireworks.html">here</a>.
+<a href="../source/suncat-fireworks.html">org-mode source</a>
 </p>
 </div>
 </div>

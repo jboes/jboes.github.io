@@ -530,9 +530,9 @@ print(encoding)
 </pre>
 </div>
 
-<p>
-{"trajectory": {"0": {"positions": [[4.0, 4.0, 4.0], [4.0, 4.0, 4.8]], "cell": [[8.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 8.8]]}}, "numbers": [1, 1], "pbc": [false, false, false], "constraints": [], "calculator<sub>parameters</sub>": {"mode": "relax", "opt<sub>algorithm</sub>": "bfgs", "xc": "RPBE", "outdir": ".", "output": {"removesave": true}, "pw": 200, "dw": 2000, "dipole": {"status": true}, "kpts": [1, 1, 1], "calcstress": true, "convergence": {"energy": 1e-05, "mixing": 0.35}}}
-</p>
+<pre class="example">
+{"trajectory": {"0": {"positions": [[4.0, 4.0, 4.0], [4.0, 4.0, 4.8]], "cell": [[8.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 8.8]]}}, "numbers": [1, 1], "pbc": [false, false, false], "constraints": [], "calculator_parameters": {"mode": "relax", "opt_algorithm": "bfgs", "xc": "RPBE", "outdir": ".", "output": {"removesave": true}, "pw": 200, "dw": 2000, "dipole": {"status": true}, "kpts": [1, 1, 1], "calcstress": true, "convergence": {"energy": 1e-05, "mixing": 0.35}}}
+</pre>
 
 <p>
 This provides a lovely bundled up atoms object which is complete with the ase-espresso keywords we expect to be run with this atoms object. Not only is this exactly what we need to run the calculation, it's also perfect documentation for calling on later to identify what this calculation is.
@@ -760,18 +760,18 @@ Completing this calculation will give you an output with the following files
 </pre>
 </div>
 
-<p>
--rw-r&#x2013;r&#x2013; 1 jrboes suncat 3.6M Dec  3 18:32 calc.tgz
--rw-r&#x2013;r&#x2013; 1 jrboes suncat  644 Dec  3 18:32 input.traj
--rw-r&#x2013;r&#x2013; 1 jrboes suncat  28K Dec  3 18:32 log
--rw-r&#x2013;r&#x2013; 1 jrboes suncat    8 Dec  3 18:32 nodefile.18552100
--rw-r&#x2013;r&#x2013; 1 jrboes suncat 3.3K Dec  3 18:32 output.traj
--rw-r&#x2013;r&#x2013; 1 jrboes suncat 1.2K Dec  3 18:32 pw.inp
--rw-r&#x2013;r&#x2013; 1 jrboes suncat  765 Dec  3 18:32 script2.py
--rw-r&#x2013;r&#x2013; 1 jrboes suncat  392 Dec  3 18:32 stderr
--rw-r&#x2013;r&#x2013; 1 jrboes suncat    0 Dec  3 18:32 stdout
--rw-r&#x2013;r&#x2013; 1 jrboes suncat    8 Dec  3 18:32 uniqnodefile.18552100
-</p>
+<pre class="example">
+-rw-r--r-- 1 jrboes suncat 3.6M Dec  3 18:32 calc.tgz
+-rw-r--r-- 1 jrboes suncat  644 Dec  3 18:32 input.traj
+-rw-r--r-- 1 jrboes suncat  28K Dec  3 18:32 log
+-rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 nodefile.18552100
+-rw-r--r-- 1 jrboes suncat 3.3K Dec  3 18:32 output.traj
+-rw-r--r-- 1 jrboes suncat 1.2K Dec  3 18:32 pw.inp
+-rw-r--r-- 1 jrboes suncat  765 Dec  3 18:32 script2.py
+-rw-r--r-- 1 jrboes suncat  392 Dec  3 18:32 stderr
+-rw-r--r-- 1 jrboes suncat    0 Dec  3 18:32 stdout
+-rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 uniqnodefile.18552100
+</pre>
 </div>
 </div>
 
@@ -863,9 +863,9 @@ print(username, name, password)
 </pre>
 </div>
 
-<p>
-your<sub>username</sub> your<sub>database</sub><sub>name</sub> your<sub>password</sub>
-</p>
+<pre class="example">
+your_username your_database_name your_password
+</pre>
 
 <p>
 Now we can connect to the launchpad of Fireworks using the following code.
@@ -1000,9 +1000,9 @@ print(images)
 </pre>
 </div>
 
-<p>
-[Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;))]
-</p>
+<pre class="example">
+[Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(...)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(...)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(...))]
+</pre>
 
 <p>
 The truly beautiful thing about this code is that it can be performed from my local machine, just the same way the previous submission script was. If you set up your calculation inputs and outputs, there's no need to interact with anything on the server during for regular usage purposes!
@@ -1014,6 +1014,10 @@ This is a wonderful tool and an excellent skill for any computational catalysis 
 
 <p>
 Until then, happy programming!
+</p>
+
+<p>
+<a href="../source/running-fireworks-scripts.html">org-mode source</a>
 </p>
 </div>
 </div>

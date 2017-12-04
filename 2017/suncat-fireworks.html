@@ -56,9 +56,9 @@
 </li>
 <li><a href="#sec-2-3">2.3. Setting up the YAML files</a></li>
 <li><a href="#sec-2-4">2.4. Initializing the database</a></li>
-<li><a href="#sec-2-5">2.5. Other recourses:</a></li>
 </ul>
 </li>
+<li><a href="#sec-3">3. Other recourses</a></li>
 </ul>
 </div>
 </div>
@@ -95,14 +95,13 @@ In the next section, I'll demonstrate how to log in to the MongoDB with your own
 <div id="outline-container-sec-2" class="outline-2">
 <h2 id="sec-2"><span class="section-number-2">2</span> Fireworks on Sherlock</h2>
 <div class="outline-text-2" id="text-2">
-<p>
-Sherlock is the most well-established cluster of the three available to SUNCAT, so it's generally easiest to start installation here to build up some confidence. In theory, this installation is as simple as running the following script:
-</p>
-</div>
-
-<div id="outline-container-sec-2-1" class="outline-3">
+</div><div id="outline-container-sec-2-1" class="outline-3">
 <h3 id="sec-2-1"><span class="section-number-3">2.1</span> Automatic setup script</h3>
 <div class="outline-text-3" id="text-2-1">
+<p>
+Sherlock is the most well-established cluster of the three available to SUNCAT, so it's generally easiest to start installation here to build up some confidence. In theory, this installation is as simple as running the following script.
+</p>
+
 <div class="org-src-container">
 
 <pre class="src src-sh">sh /share/PI/suncat/fireworks_scripts/makeFireworksDirectory.sh
@@ -110,7 +109,7 @@ Sherlock is the most well-established cluster of the three available to SUNCAT, 
 </div>
 
 <p>
-This will execute the following script:
+This will execute the following script.
 </p>
 
 <div class="org-src-container">
@@ -163,7 +162,7 @@ echo "alias lpadc=\"lpad -l $SCRATCH/fireworks/my_launchpad.yaml\"" &gt;&gt; $SC
 </div>
 
 <p>
-This will construct a fireworks directory in your $SCRATCH folder with all the files you should need to run Fireworks on Sherlock. This includes some example scripts and the necessary yaml files. I'll discuss these in more detail a little later on.
+This will construct a fireworks directory in your <code>$SCRATCH</code> folder with all the files you should need to run Fireworks on Sherlock. This includes some example scripts and the necessary yaml files. I'll discuss these in more detail a little later on.
 </p>
 
 <p>
@@ -171,7 +170,7 @@ The script will also install a python virtual environment for you inside that di
 </p>
 
 <p>
-However, this can also add some additional difficulty when doing development work or trying to troubleshoot. For example, you might prefer to use your own ase-espresso installation so you can make personal changes to it. We also don't gain much insight about what's going on under the hoody, so I'll go through a more detailed explanation next.
+However, this can also add some additional difficulty when doing development work or trying to troubleshoot. For example, you might prefer to use your own ase-espresso installation so you can make personal changes to it. We also don't gain much insight about what's going on under the hood, so I'll go through a more detailed explanation next.
 </p>
 </div>
 </div>
@@ -191,7 +190,7 @@ print(sys.version)
 </div>
 
 <p>
-I prefer to have my own installation of <a href="https://www.anaconda.com/download/#linux">Anaconda</a> on each of my machines because it makes package management easier and comes pre-packaged with many useful modules for scientific programming. According to the Fireworks <a href="https://materialsproject.github.io/fireworks/installation.html">website</a>, Python 2.7.3+ or 3.3+ should be sufficient. The real test is whether you can install the correct modules or not. This should work well enough on a personal machine, but may not on a server. The \(--user\) flag is used to install the modules into the home directory so that super user privileges are not needed.
+I prefer to have my own installation of <a href="https://www.anaconda.com/download/#linux">Anaconda</a> on each of my machines because it makes package management easier and comes pre-packaged with many useful modules for scientific programming. According to the Fireworks <a href="https://materialsproject.github.io/fireworks/installation.html">website</a>, Python 2.7.3+ or 3.3+ should be sufficient. The real test is whether you can install the correct modules or not. This should work well enough on a personal machine, but may not on a server. The <code>--user</code> flag is used to install the modules into the home directory so that super user privileges are not needed.
 </p>
 
 <div class="org-src-container">
@@ -206,6 +205,37 @@ pip install --user matplotlib  # Used for the GUI
 </div>
 
 <p>
+Requirement already up-to-date: pip in /home/jboes/anaconda3/lib/python3.6/site-packages
+Requirement already up-to-date: setuptools in /home/jboes/anaconda3/lib/python3.6/site-packages
+Requirement already satisfied: fireworks in /home/jboes/anaconda3/lib/python3.6/site-packages
+Requirement already satisfied: six&gt;=1.10.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: tqdm&gt;=4.8.4 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: flask&gt;=0.11.1 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: pyyaml&gt;=3.11.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: tabulate&gt;=0.7.5 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: Jinja2&gt;=2.8.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: flask-paginate&gt;=0.4.5 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: python-dateutil&gt;=2.5.3 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: monty&gt;=1.0.1 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: gunicorn&gt;=19.6.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: pymongo&gt;=3.3.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from fireworks)
+Requirement already satisfied: Werkzeug&gt;=0.7 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
+Requirement already satisfied: itsdangerous&gt;=0.21 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
+Requirement already satisfied: click&gt;=2.0 in /home/jboes/anaconda3/lib/python3.6/site-packages (from flask&gt;=0.11.1-&gt;fireworks)
+Requirement already satisfied: MarkupSafe&gt;=0.23 in <i>home/jboes/anaconda3/lib/python3.6/site-packages (from Jinja2&gt;=2.8.0-&gt;fireworks)
+Requirement already satisfied: numpy in /home/jboes</i>.local/lib/python3.6/site-packages
+Requirement already satisfied: scipy in <i>home/jboes</i>.local/lib/python3.6/site-packages
+Requirement already satisfied: numpy&gt;=1.8.2 in <i>home/jboes</i>.local/lib/python3.6/site-packages (from scipy)
+Requirement already satisfied: matplotlib in <i>home/jboes</i>.local/lib/python3.6/site-packages
+Requirement already satisfied: six&gt;=1.10 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: cycler&gt;=0.10 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: pyparsing!=2.0.4,!=2.1.2,!=2.1.6,&gt;=2.0.1 in /home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: python-dateutil&gt;=2.0 in <i>home/jboes/anaconda3/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: pytz in /home/jboes</i>.local/lib/python3.6/site-packages (from matplotlib)
+Requirement already satisfied: numpy&gt;=1.7.1 in <i>home/jboes</i>.local/lib/python3.6/site-packages (from matplotlib)
+</p>
+
+<p>
 Once the simple modules are installed, you will likely want to install <a href="https://github.com/vossjo/ase-espresso">ase-espresso</a> if you intend to use Quantum Espresso. On the cluster I assume this is contained within the one of the PATH calls, but I'm not sure where. Instead, I choose to maintain my own version of ase-espresso, which is simple enough install from git. First, move to a directory where you want to install ase-espresso and run the following.
 </p>
 
@@ -218,7 +248,7 @@ cp espsite.py.example.SLURMsherlock espsite.py
 </div>
 
 <p>
-The final step in the code above will copy the example Sherlock template for running ase-espresso. Once this is finished you simply need to add the installation location to your PATH in your .bashrc file.
+The final step in the code above will copy the example Sherlock template for running ase-espresso. Once this is finished you simply need to add the installation location to your PATH in your <code>.bashrc</code> file.
 </p>
 
 <div class="org-src-container">
@@ -232,7 +262,7 @@ export ESP_PSP_PATH=/home/vossj/suncat/esdld/psp
 </div>
 
 <p>
-The last line of code here points to the Pseudo potential paths to be used when preforming your calculations. You may want to change this to suit your own needs. that should cover all the details of setting up Qunatum Espresso and Fireworks from scratch.
+The last line of code here points to the Pseudo potential paths to be used when preforming your calculations. You may want to change this to suit your own needs. that should cover all the details of setting up Quantum Espresso and Fireworks from scratch.
 </p>
 
 <p>
@@ -255,7 +285,7 @@ export PATH=/scratch/users/jrboes/anaconda2/bin:$PATH
 </div>
 
 <p>
-Johannes' version of Python is installed here:
+Johannes' version of Python is installed here.
 </p>
 
 <div class="org-src-container">
@@ -317,7 +347,7 @@ mkdir logs
 </div>
 
 <p>
-By default, Fireworks will create the jobs which it runs on the Sherlock cluster in files named Block-* inside of the directory where the ``launchpad'' is located. We can create this yaml file using the \(lpad init\) command which comes with the newly installed Fireworks module. This will walk you through the addition of your credentials automatically with the following prompt.
+By default, Fireworks will create the jobs which it runs on the Sherlock cluster in files named Block-* inside of the directory where the ``launchpad'' is located. We can create this yaml file using the <code>lpad init</code> command which comes with the newly installed Fireworks module. This will walk you through the addition of your credentials automatically with the following prompt.
 </p>
 
 <div class="org-src-container">
@@ -338,7 +368,7 @@ Configuration written to my_launchpad.yaml!
 </div>
 
 <p>
-This will generate a file named ``my<sub>launchpad</sub>.yaml'' which contains the following.
+This will generate a file named <code>my_launchpad.yaml</code> which contains the following.
 </p>
 
 <div class="org-src-container">
@@ -365,7 +395,7 @@ You can also simply create this file by copying your credentials into a similarl
 </p>
 
 <p>
-Next we need a ``my<sub>fireworker</sub>.yaml'' file for keeping track of the server where Fireworks are being run. Create a file of this name and add the following.
+Next we need a <code>my_fireworker.yaml</code> file for keeping track of the server where Fireworks are being run. Create a file of this name and add the following.
 </p>
 
 <div class="org-src-container">
@@ -377,11 +407,11 @@ query: '{}'
 </div>
 
 <p>
-The ``name'' is that will appear in the database to indicate which server a Firework was run on. 
+The <code>name</code> is that will appear in the database to indicate which server a Firework was run on. 
 </p>
 
 <p>
-The last required yaml file is a ``my<sub>qadapter</sub>.yaml'' file. This will contain the details of how the jobs which are committed to the queue are run.
+The last required yaml file is a <code>my_qadapter.yaml</code> file. This will contain the details of how the jobs which are committed to the queue are run.
 </p>
 
 <div class="org-src-container">
@@ -406,11 +436,11 @@ These are my default settings, but you may want to set them differently dependin
 </p>
 
 <p>
-Another important difference in this step for my purposes is that I do not add anything to my pre<sub>rocket</sub>. The pre<sub>rocket</sub> is bash code which is executed before the main body of code. For the automated script in the first section, the PATH and LB<sub>LIBRARY</sub><sub>PATH</sub> information needed to run Quantum Espresso on Sherlock is added here. This is to keep the environment that Fireworks runs in completely segregated from whichever setup is already in place for you on Sherlock. This can make troubleshooting very convoluted since it requires an understanding of where PATH information is being called from under which contexts. This can be made worse by using existing installations of Python which are also calling PATH information which can make things run differently in the QUEUE than they do on the headnode.
+Another important difference in this step for my purposes is that I do not add anything to my pre<sub>rocket</sub>. The pre<sub>rocket</sub> is bash code which is executed before the main body of code. For the automated script in the first section, the PATH and LB<sub>LIBRARY</sub><sub>PATH</sub> information needed to run Quantum Espresso on Sherlock is added here. This is to keep the environment that Fireworks runs in completely segregated from whichever setup is already in place for you on Sherlock. This can make troubleshooting very convoluted since it requires an understanding of where PATH information is being called from under which contexts. This can be made worse by using existing installations of Python which are also calling PATH information which can make things run differently in the QUEUE than they do on the head node.
 </p>
 
 <p>
-One example of this is Johannes' installation of Python here:
+One example of this is Johannes' installation of Python here.
 </p>
 
 <div class="org-src-container">
@@ -448,11 +478,11 @@ else
 </div>
 
 <p>
-The first if statement above is checking if we are on Sherlock 1 or 2. Notice that the PATH information provided here is the same PATH information provided in the automated script. These are the libraries which are required for running Quantum Espresso. To help my own understanding, I chose to add this PATH information to my .bashrc file. This way, my library environment is consistent in ALL contexts which is very useful for troubleshooting purposes.
+The first if statement above is checking if we are on Sherlock 1 or 2. Notice that the PATH information provided here is the same PATH information provided in the automated script. These are the libraries which are required for running Quantum Espresso. To help my own understanding, I chose to add this PATH information to my <code>.bashrc</code> file. This way, my library environment is consistent in ALL contexts which is very useful for troubleshooting purposes.
 </p>
 
 <p>
-Here is a copy of the Sherlock 1 specific section of my .bashrc. Loading them here prevents the need to load them in the pre<sub>rocket</sub> or using the ``/home/vossj/suncat/bin/python<sub>s2</sub>.0'' script when calling my own version of Python.
+Here is a copy of the Sherlock 1 specific section of my <code>.bashrc</code>. Loading them here prevents the need to load them in the pre<sub>rocket</sub> or using the <code>/home/vossj/suncat/bin/python_s2.0</code> script when calling my own version of Python.
 </p>
 
 <div class="org-src-container">
@@ -487,7 +517,7 @@ NOTE: While this setup is convenient for keeping things consistent in all workin
 </p>
 
 <p>
-By the end of this section you should have a $SCRATCH/fireworks directory with the following files:
+By the end of this section you should have a $SCRATCH/fireworks directory with the following files.
 </p>
 
 <div class="org-src-container">
@@ -504,7 +534,7 @@ my_qadapter.yaml
 <h3 id="sec-2-4"><span class="section-number-3">2.4</span> Initializing the database</h3>
 <div class="outline-text-3" id="text-2-4">
 <p>
-Up until this point, we have not constructed any database architecture which will tell our generic MongoDB how to run Fireworks. To make this process simpler, it is convenient to have an alias in the .bashrc file which tells the \(lpad\) command where your yaml files are.
+Up until this point, we have not constructed any database architecture which will tell our generic MongoDB how to run Fireworks. To make this process simpler, it is convenient to have an alias in the <code>.bashrc</code> file which tells the <code>lpad</code> command where your yaml files are.
 </p>
 
 <div class="org-src-container">
@@ -544,14 +574,19 @@ This is a fairly long post already, so I will save discussion of some of the bas
 </p>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-2-5" class="outline-3">
-<h3 id="sec-2-5"><span class="section-number-3">2.5</span> Other recourses:</h3>
-<div class="outline-text-3" id="text-2-5">
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Other recourses</h2>
+<div class="outline-text-2" id="text-3">
 <p>
 An introductory presentation to from former post-doc Zack Ulissi: <a href="https://docs.google.com/presentation/d/1w8XW8Q-JhWRM7-MjOB7R53UoAe42t-CKWNuZLmQSvgA/edit#slide=id.p">Google slides</a>.
 </p>
-</div>
+
+
+<p>
+The org-mode documentation used to produce this post is available <a href="./suncat-fireworks.html">here</a>.
+</p>
 </div>
 </div>
 

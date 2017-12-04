@@ -69,17 +69,16 @@ Using a database to store information about where calculations are located has a
 <h2 id="sec-1"><span class="section-number-2">1</span> Running Quantum Espresso</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-Before we try running Fireworks at all, we should make sure we can run Quantum Espresso first. In a previous post, I went over installing Fireworks on Sherlock for SUNCAT users. This post also goes over getting the libraries needed for Quantum Espresso working in any environment. If you've followed this approach, you should be able to run the following example script with little troubles.
+Before we try running Fireworks at all, we should make sure we can run Quantum Espresso first. In a previous post, I went over installing Fireworks on Sherlock for SUNCAT users. This post also goes over getting the libraries needed for Quantum Espresso working in any environment. If you've followed this approach, you should be able to run the following example script with little trouble.
 </p>
 
 <p>
-First, we construct a script file to run. Copy the following into a file named 'script.py'.
+First, we construct a script file to run. Copy the following into a file named <code>script.py</code>.
 </p>
 
 <div class="org-src-container">
 
-<pre class="src src-python">#!/usr/bin/env python
-from ase import Atoms
+<pre class="src src-python">from ase import Atoms
 from ase.io import write
 from espresso import espresso
 
@@ -527,6 +526,10 @@ print(encoding)
 </div>
 
 <p>
+{"trajectory": {"0": {"positions": [[4.0, 4.0, 4.0], [4.0, 4.0, 4.8]], "cell": [[8.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 8.8]]}}, "numbers": [1, 1], "pbc": [false, false, false], "constraints": [], "calculator<sub>parameters</sub>": {"mode": "relax", "opt<sub>algorithm</sub>": "bfgs", "xc": "RPBE", "outdir": ".", "output": {"removesave": true}, "pw": 200, "dw": 2000, "dipole": {"status": true}, "kpts": [1, 1, 1], "calcstress": true, "convergence": {"energy": 1e-05, "mixing": 0.35}}}
+</p>
+
+<p>
 This provides a lovely bundled up atoms object which is complete with the ase-espresso keywords we expect to be run with this atoms object. Not only is this exactly what we need to run the calculation, it's also perfect documentation for calling on later to identify what this calculation is.
 </p>
 </div>
@@ -601,10 +604,6 @@ def encode_to_atoms(encode, out_file='input.traj'):
 </div>
 
 <p>
-This function can be found here.
-</p>
-
-<p>
 Now we can convert our JSON encoding back into an atoms object complete with the calculation parameters which were attached before they left the computer we generated them on. I do this on the same machine here simply to demonstrate the concept.
 </p>
 
@@ -648,6 +647,11 @@ recoved_atoms = encode_to_atoms(encoding)
 print(atoms)
 </pre>
 </div>
+
+<p>
+{"trajectory": {"0": {"positions": [[4.0, 4.0, 4.0], [4.0, 4.0, 4.8]], "cell": [[8.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 8.8]]}}, "numbers": [1, 1], "pbc": [false, false, false], "constraints": [], "calculator<sub>parameters</sub>": {"mode": "relax", "opt<sub>algorithm</sub>": "bfgs", "xc": "RPBE", "outdir": ".", "output": {"removesave": true}, "pw": 200, "dw": 2000, "dipole": {"status": true}, "kpts": [1, 1, 1], "calcstress": true, "convergence": {"energy": 1e-05, "mixing": 0.35}}}
+Atoms(symbols='H2', pbc=False, cell=[8.0, 8.0, 8.8])
+</p>
 </div>
 </div>
 
@@ -745,27 +749,24 @@ images = get_potential_energy()
 Completing this calculation will give you an output with the following files
 </p>
 
-<div class="export">
-<p>
-ls -lha
-</p>
-
-</div>
-
 <div class="org-src-container">
 
-<pre class="src src-sh">-rw-r--r-- 1 jrboes suncat 3.6M Dec  3 18:32 calc.tgz
--rw-r--r-- 1 jrboes suncat  644 Dec  3 18:32 input.traj
--rw-r--r-- 1 jrboes suncat  28K Dec  3 18:32 log
--rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 nodefile.18552100
--rw-r--r-- 1 jrboes suncat 3.3K Dec  3 18:32 output.traj
--rw-r--r-- 1 jrboes suncat 1.2K Dec  3 18:32 pw.inp
--rw-r--r-- 1 jrboes suncat  765 Dec  3 18:32 script2.py
--rw-r--r-- 1 jrboes suncat  392 Dec  3 18:32 stderr
--rw-r--r-- 1 jrboes suncat    0 Dec  3 18:32 stdout
--rw-r--r-- 1 jrboes suncat    8 Dec  3 18:32 uniqnodefile.18552100
+<pre class="src src-sh">ls -lha
 </pre>
 </div>
+
+<p>
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat 3.6M Dec  3 18:32 calc.tgz
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat  644 Dec  3 18:32 input.traj
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat  28K Dec  3 18:32 log
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat    8 Dec  3 18:32 nodefile.18552100
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat 3.3K Dec  3 18:32 output.traj
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat 1.2K Dec  3 18:32 pw.inp
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat  765 Dec  3 18:32 script2.py
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat  392 Dec  3 18:32 stderr
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat    0 Dec  3 18:32 stdout
+-rw-r&#x2013;r&#x2013; 1 jrboes suncat    8 Dec  3 18:32 uniqnodefile.18552100
+</p>
 </div>
 </div>
 
@@ -773,7 +774,7 @@ ls -lha
 <h3 id="sec-2-5"><span class="section-number-3">2.5</span> Recovering an existing calculator</h3>
 <div class="outline-text-3" id="text-2-5">
 <p>
-From the previous script, we now have a calculation which is a good save point for building off of new calculations. By loading in the `calc.tgz` file which was saved, we can restart our calculation from the finished relaxation using the following script.
+From the previous script, we now have a calculation which is a good save point for building off of new calculations. By loading in the <code>calc.tgz</code> file which was saved, we can restart our calculation from the finished relaxation using the following script.
 </p>
 
 <div class="org-src-container">
@@ -842,7 +843,7 @@ def get_total_potential(out_file='potential.msg'):
 <h2 id="sec-3"><span class="section-number-2">3</span> Running through Fireworks</h2>
 <div class="outline-text-2" id="text-3">
 <p>
-Finally, we are ready to submit a basic calculation to Fireworks using the tools discussed above. To keep this documentation interactive, I will be pulling my own credentials from a secure file. This will looks like the following in the code that follows.
+Finally, we are ready to submit a basic calculation to Fireworks using the tools discussed above. To keep this documentation interactive, I will be pulling my own credentials from a secure file. This will looks like the following.
 </p>
 
 <div class="org-src-container">
@@ -856,6 +857,10 @@ username, name, password = netrc().authenticators(host)
 print(username, name, password)
 </pre>
 </div>
+
+<p>
+your<sub>username</sub> your<sub>database</sub><sub>name</sub> your<sub>password</sub>
+</p>
 
 <p>
 Now we can connect to the launchpad of Fireworks using the following code.
@@ -928,23 +933,23 @@ launchpad.add_wf(workflow)
 </div>
 
 <p>
-After running this script, if you have already initiated Fireworks rapidfire on Sherlock, you can see how to do this in the previous post: <a href="./suncat-fireworks.html">./suncat-fireworks.html</a>. Once it is turned on, Sherlock should submit a job to the queue automatically.
+After running this script, if you have already initiated Fireworks rapidfire on Sherlock, you can see how to do this in a <i>previous post</i>. Once it is turned on, Sherlock should submit a job to the queue automatically.
 </p>
 
 <p>
-So what's going on here exactly? We'll for full details about the differences between a PyTask, Firework, and Wroflow, I would recommend looking into the in-depth documentation available on the <a href="https://materialsproject.github.io/fireworks/">Fireworks website</a>. When this calculation runs, it will perform 2 distinct operations on the calculation node once it is started. The first, \(t0\), is the qefw.encode<sub>to</sub><sub>atoms</sub> function demonstrated previously. (NOTE: Make sure the qefw functions are on the PYHONPATH on the server before you run this example!). This will unpack the encoding which is stored in the database by passing \(encoding\) as an argument to the first function. This allows me to run this script from my local machine and still have the encoding uploaded to the database and decoded on the server. This is very useful for me because I enjoy using a heavy version of emacs which does not run well on the servers.
+So what's going on here exactly? We'll for full details about the differences between a PyTask, Firework, and Wroflow, I would recommend looking into the in-depth documentation available on the <a href="https://materialsproject.github.io/fireworks/">Fireworks website</a>. When this calculation runs, it will perform 2 distinct operations on the calculation node once it is started. The first, <code>t0</code>, is the <code>qefw.encode_to_atoms</code> function demonstrated previously. (NOTE: Make sure the qefw functions are on the PYHONPATH on the server before you run this example!). This will unpack the encoding which is stored in the database by passing <code>encoding</code> as an argument to the first function. This allows me to run this script from my local machine and still have the encoding uploaded to the database and decoded on the server. This is very useful for me because I enjoy using a heavy version of emacs which does not run well on the servers.
 </p>
 
 <p>
-Once the \(t0\) task is performed successfully, the \(t1\) task will begin and perform the relaxation on the calculation node as well. Since the \(qefw.get_potential_energy\) function returns the images of the atoms objects encoded into JSON, we can also tell Fireworks to store that output into the 'spec.trajectory' field of the results by assigning \(stored_data_varname='trajectory'\). This is extremely useful since most of the information I am ever looking for is included in the final trajectory file. If you need more specific information from the file, these functions should provide a pretty clear example of how you would go about doing that. Keep in mind that all information must be in a compatible format for the MongoDB database. JSON is a pretty safe bet in that regard.
+Once the <code>t0</code> task is performed successfully, the <code>t1</code> task will begin and perform the relaxation on the calculation node as well. Since the <code>qefw.get_potential_energy</code> function returns the images of the atoms objects encoded into JSON, we can also tell Fireworks to store that output into the 'spec.trajectory' field of the results by assigning stored<sub>data</sub><sub>varname</sub>='trajectory'. This is extremely useful since most of the information I am ever looking for is included in the final trajectory file. If you need more specific information from the file, these functions should provide a pretty clear example of how you would go about doing that. Keep in mind that all information must be in a compatible format for the MongoDB database. JSON is a pretty safe bet in that regard.
 </p>
 
 <p>
-You could also add in a \(t3\) task which performs your own follow-up tasks, such as the \(get_total_potential\) example above.
+You could also add in a <code>t3</code> task which performs your own follow-up tasks, such as the <code>get_total_potential</code> example above.
 </p>
 
 <p>
-You can monitor the progress of your calculation with the webgui the following bash script. For me, lpad is an alias with a \(-f\) argument which points to my ``my<sub>fireworks</sub>.yaml'' file.
+You can monitor the progress of your calculation with the webgui the following bash script. For me, lpad is an alias with a <code>-f</code> argument which points to my <code>my_fireworks.yaml</code> file.
 </p>
 
 <div class="org-src-container">
@@ -989,6 +994,10 @@ images = encode_to_atoms(encoding)
 print(images)
 </pre>
 </div>
+
+<p>
+[Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;)), Atoms(symbols='SH2', pbc=False, cell=[20.0, 21.948538, 20.919218], calculator=SinglePointCalculator(&#x2026;))]
+</p>
 
 <p>
 The truly beautiful thing about this code is that it can be performed from my local machine, just the same way the previous submission script was. If you set up your calculation inputs and outputs, there's no need to interact with anything on the server during for regular usage purposes!

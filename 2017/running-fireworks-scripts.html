@@ -59,7 +59,7 @@
 </div>
 </div>
 <p>
-The most difficult part of adapting to using Fireworks is probably not installing it, but actually adapting to database centric worflow style. What does that mean exactly? Well, the evolution of performing quantum chemistry calculations usually begins with performing a large number of calculations in a single file and outputting the results to differently named files within that directory. With a significantly large number of calculations, this quickly becomes a chaotic mess.
+The most difficult part of adapting to using Fireworks is probably not installing it, but actually adapting to database centric workflow style. What does that mean exactly? Well, the evolution of performing quantum chemistry calculations usually begins with performing a large number of calculations in a single file and outputting the results to differently named files within that directory. With a significantly large number of calculations, this quickly becomes a chaotic mess.
 </p>
 
 <p>
@@ -544,7 +544,7 @@ This provides a lovely bundled up atoms object which is complete with the ase-es
 <h3 id="sec-2-3"><span class="section-number-3">2.3</span> Recovering an atoms object from encoding</h3>
 <div class="outline-text-3" id="text-2-3">
 <p>
-Now that we have a JSON representation of our atoms object, we will be able to send this string to the database have have it stored for future use. Once the calculation gets called up on one of the clusters however, we will need some way of turning that JSON string back into an atoms object so that the local installation of ASE knows how to use it as an atoms object.
+Now that we have a JSON representation of our atoms object, we will be able to send this string to the database have it stored for future use. Once the calculation gets called up on one of the clusters however, we will need some way of turning that JSON string back into an atoms object so that the local installation of ASE knows how to use it as an atoms object.
 </p>
 
 <div class="org-src-container">
@@ -647,15 +647,15 @@ encoding = atoms_to_encode(atoms)
 
 print(encoding)
 
-recoved_atoms = encode_to_atoms(encoding)
+recovered_atoms = encode_to_atoms(encoding)
 
-print(atoms)
+print(recovered_atoms)
 </pre>
 </div>
 
 <p>
 {"trajectory": {"0": {"positions": [[4.0, 4.0, 4.0], [4.0, 4.0, 4.8]], "cell": [[8.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 8.8]]}}, "numbers": [1, 1], "pbc": [false, false, false], "constraints": [], "calculator<sub>parameters</sub>": {"mode": "relax", "opt<sub>algorithm</sub>": "bfgs", "xc": "RPBE", "outdir": ".", "output": {"removesave": true}, "pw": 200, "dw": 2000, "dipole": {"status": true}, "kpts": [1, 1, 1], "calcstress": true, "convergence": {"energy": 1e-05, "mixing": 0.35}}}
-Atoms(symbols='H2', pbc=False, cell=[8.0, 8.0, 8.8])
+[Atoms(symbols='H2', pbc=False, cell=[8.0, 8.0, 8.8], calculator=SinglePointCalculator(&#x2026;))]
 </p>
 </div>
 </div>
